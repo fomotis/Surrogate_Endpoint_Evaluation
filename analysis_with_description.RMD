@@ -1,0 +1,13 @@
+---
+title: "thesis analysis"
+author: "Olusoji Oluwafemi Daniel(1541893)"
+date: "May 15, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
