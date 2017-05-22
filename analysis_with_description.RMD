@@ -18,7 +18,7 @@ library(siggenes)
 library(limma)
 library(multtest)
 library(class)
-knitr::opts_chunk$set(echo=TRUE,message=F,warning=F)
+knitr::opts_chunk$set(echo=F,message=F,warning=F)
 ```
 
 ## Reading in the Data
@@ -123,8 +123,10 @@ plot(x=fc,y=-log(p.val2),main="Volcano Plot for wilcoxon test",pch=20)
 
 #adjusting the raw p-values(t-test)
 t.adj_pval <- mt.rawp2adjp(p.val,proc=c("BH"))
+data.frame(Surrogate=t.adj_pval$index,t.adj_pval$adjp)
 #
 w.adj_pval <- mt.rawp2adjp(p.val2,proc=c("BH"))
+data.frame(Surrogate=w.adj_pval$index,w.adj_pval$adjp)
 
 ###test using the log of counts of the surrogates
 surrogates_log <- data.frame(apply(surrogates[,-1],2,log))
@@ -160,8 +162,13 @@ plot(x=fc_log,y=-log(p.val_log),main="Volcano Plot for t-test(log counts)",pch=2
 plot(x=fc_log,y=-log(plog.val2),main="Volcano Plot for wilcoxon test(log counts)",pch=20)
 
 #adjusting the raw p-values
+#t test
 tlog.adj <- mt.rawp2adjp(p.val_log,proc=c("BH"))
+data.frame(Surrogate=tlog.adj$index,tlog.adj$adjp)
+
+#wilcoxon
 wlog.adj <- mt.rawp2adjp(plog.val2,proc=c("BH"))
+data.frame(Surrogate=wlog.adj$index,wlog.adj$adjp)
 ```
 
 ## Variance-Covariane Matrix Computation
@@ -179,12 +186,10 @@ ofeces <- p_datalog %>% filter(treatment=="own_feces") %>%  select(-patient,-age
 #renaming ofeces columns
 names(ofeces) <- paste0("of_",names(ofeces))
 #variance_covariance matrix
-vmat <- 
+
 
 ```
 
 
-```{r}
-distance
-```
+
 
