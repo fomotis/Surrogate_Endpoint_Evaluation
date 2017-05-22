@@ -7,12 +7,184 @@ output: html_document
 
 ```{r setup, include=FALSE}
 library(tidyverse)
+library(readxl)
 library(ggplot2)
+library(GGally)
 library(knitr)
+library(exactRankTests)
 library(glmnet)
+library(Biobase)
+library(siggenes)
+library(limma)
+library(multtest)
 library(class)
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo=TRUE,message=F,warning=F)
 ```
 
 ## Reading in the Data
+
+```{r reading_data}
+p_data <- read_excel("./Data/Dataset_Thesis.xlsx",sheet=1,range="A1:AJ17",col_names=T)
+#taking log of the counts
+datalog <- data.frame(apply(p_data %>% select(-patient,-age,-treatment,-rdt0,
+                                     -rdt6,-Diff_rdt6_rdt0),2,log))
+#all counts of bacteria logged
+p_datalog <- data.frame(bind_cols(p_data %>% select(patient,age,treatment,rdt0,rdt6,
+                                         Diff_rdt6_rdt0), datalog))
+```
+
+
+## Data Exploration
+
+```{r exploration}
+#matrix of only surrogates
+S <- data.frame(p_data %>% select(-treatment,-patient,-age,-rdt0,-rdt6,-Diff_rdt6_rdt0))
+S_log <- data.frame(p_datalog %>% select(-treatment,-patient,-age,-rdt0,-rdt6,-Diff_rdt6_rdt0))
+pps <- seq(0,27,3)
+for(i in 1:10){
+  par(mfrow=c(3,2))
+  a <- pps[i]
+  for(j in 1:3){
+    a <- a+1
+    if(a > 30) break
+    #original
+    #experimental treatment
+    plot(S[,a],p_data$Diff_rdt6_rdt0,type="n", xlab="Surrogate",
+         ylab="True",main=paste0("Counts","(Surrogate",a,")"))
+    points(S[p_data$treatment=="donorfeces",a],p_data$Diff_rdt6_rdt0[p_data$treatment=="donorfeces"],cex=2,pch=19,col="green3")
+    #control treatment
+    points(S[p_data$treatment=="own_feces",a],p_data$Diff_rdt6_rdt0[p_data$treatment=="own_feces"],cex=2,pch=19,col="red3")
+    
+    #log version
+    plot(S_log[,a],p_datalog$Diff_rdt6_rdt0,type="n",xlab="Surrogate",ylab="True",main=paste0("Logcounts","(Surrogate",a,")"))
+    #experimental treatment
+    points(S_log[p_datalog$treatment=="donorfeces",a],p_datalog$Diff_rdt6_rdt0[p_datalog$treatment=="donorfeces"],cex=2,pch=19,col="green3")
+    #control treatment
+  points(S_log[p_datalog$treatment=="own_feces",a],p_datalog$Diff_rdt6_rdt0[p_datalog$treatment=="own_feces"],cex=2,pch=19,col="red3")
+  }
+}
+##experimental treatment == green
+##control treatment == red
+
+##Log appears to show some relationship not observed with the ordinary counts
+
+```
+
+## Testing Hypothesis of Treatment Effect on True-Endpoint
+
+```{r trueEndpoint_test}
+#t test version(assumption of normalty is questionable)
+t.test(Diff_rdt6_rdt0~treatment,data=p_data,alternative="two.sided",conf.int=T)
+#wilcoxon
+wilcox.test(Diff_rdt6_rdt0~treatment,data=p_data,alternative="two.sided",conf.int=T,
+            conf.level=0.95,exact=F)
+```
+
+## Testing Hypothesis of Treatment Effect on Surrogates
+
+```{r surrogates_test}
+#test using raw counts
+surrogates <- data.frame(p_data %>% select(-Diff_rdt6_rdt0,-age,-rdt0,-rdt6,-patient))
+#t-test parameters
+fc <- numeric(31)
+t_stat <- numeric(31)
+p.val <- numeric(31)
+#wilcoxon test parameters
+w_stat <- numeric(31)
+p.val2 <- numeric(31)
+
+for(i in 2:31){
+  ##Using t-test
+ t_tests <- t.test(surrogates[,i]~surrogates[,1],alternative="two.sided")
+ #fold change
+ fc[i] <- t_tests$estimate[1] - t_tests$estimate[2]
+ # test statistic
+ t_stat[i] <- t_tests$statistic
+ #p_value
+ p.val[i] <- t_tests$p.value
+ ##Using Wilcoxon test
+  w_tests <- wilcox.exact(surrogates[,i]~surrogates[,1],alternative="two.sided")
+  w_stat[i] <- w_tests$statistic
+  p.val2[i] <- w_tests$p.value
+}
+
+#remove the first 0's
+fc <- fc[-1]
+p.val <- p.val[-1]
+p.val2 <- p.val2[-1]
+t_stat <- t_stat[-1]
+w_stat <- w_stat[-1]
+
+#Volcano plot 1(t-test)
+plot(x=fc,y=-log(p.val),main="Volcano Plot for t-test",pch=20)
+
+#Volcano plot 2(wilcoxon-test)
+plot(x=fc,y=-log(p.val2),main="Volcano Plot for wilcoxon test",pch=20)
+
+#adjusting the raw p-values(t-test)
+t.adj_pval <- mt.rawp2adjp(p.val,proc=c("BH"))
+#
+w.adj_pval <- mt.rawp2adjp(p.val2,proc=c("BH"))
+
+###test using the log of counts of the surrogates
+surrogates_log <- data.frame(apply(surrogates[,-1],2,log))
+surrogates_log$treatment <- surrogates$treatment
+#t-test parameters
+fc_log <- numeric(30)
+tlog_stat <- numeric(30)
+p.val_log <- numeric(30)
+#wilcoxon test parameters
+wlog_stat <- numeric(30)
+plog.val2 <- numeric(30)
+
+
+for(i in 1:30){
+  ##Using t-test
+ t_tests <- t.test(surrogates_log[,i]~surrogates_log[,31],alternative="two.sided")
+ #fold change
+ fc_log[i] <- t_tests$estimate[1] - t_tests$estimate[2]
+ # test statistic
+ tlog_stat[i] <- t_tests$statistic
+ #p_value
+ p.val_log[i] <- t_tests$p.value
+ ##Using Wilcoxon test
+  w_tests <- wilcox.exact(surrogates_log[,i]~surrogates_log[,31],alternative="two.sided")
+  wlog_stat[i] <- w_tests$statistic
+  plog.val2[i] <- w_tests$p.value
+}
+
+#Volcano plot 3(t-test)
+plot(x=fc_log,y=-log(p.val_log),main="Volcano Plot for t-test(log counts)",pch=20)
+
+#Volcano plot 4(wilcoxon-test)
+plot(x=fc_log,y=-log(plog.val2),main="Volcano Plot for wilcoxon test(log counts)",pch=20)
+
+#adjusting the raw p-values
+tlog.adj <- mt.rawp2adjp(p.val_log,proc=c("BH"))
+wlog.adj <- mt.rawp2adjp(plog.val2,proc=c("BH"))
+```
+
+## Variance-Covariane Matrix Computation
+
+```{r}
+#variance-covariance matrix and correlation
+cmatrix1 <- cor(p_datalog[,6:ncol(p_datalog)])
+#variance-covariance matrix by treatment
+#donor_feces
+dfeces <- p_datalog %>%  filter(treatment=="donorfeces") %>% select(-patient,-age,-rdt0,-rdt6,-treatment) 
+#renaming dfeces columns
+names(dfeces) <- paste0("df_",names(dfeces))
+#ownfeces
+ofeces <- p_datalog %>% filter(treatment=="own_feces") %>%  select(-patient,-age,-rdt0,-rdt6,-treatment)
+#renaming ofeces columns
+names(ofeces) <- paste0("of_",names(ofeces))
+#variance_covariance matrix
+vmat <- 
+
+```
+
+
+```{r}
+distance
+```
 
