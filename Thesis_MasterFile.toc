@@ -1,0 +1,31 @@
+\boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax 
+\defcounter {refsection}{0}\relax 
+\select@language {english}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {1}Background \& Introduction}{2}{section.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.1}The Human Microbiome}{2}{subsection.1.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.2}Surrogate Endpoints \& its Evaluation}{2}{subsection.1.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.3}Objectives}{3}{subsection.1.3}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {1.4}Dataset Description \& Source}{3}{subsection.1.4}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2}Methods}{3}{section.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.1}Joint Modelling Approach}{3}{subsection.2.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.2}Causal Inference Approach}{3}{subsection.2.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {3}Data Analysis}{3}{section.3}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {3.1}Exploratory Analysis}{3}{subsection.3.1}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {3.2}Estimation of Treatment Effects}{3}{subsection.3.2}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {3.3}Joint Modelling Results}{3}{subsection.3.3}
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {3.4}Causal Inference Results}{3}{subsection.3.4}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {4}Discussion \& Conclusion}{3}{section.4}

@@ -1,0 +1,135 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 2.8 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\sortlist[entry]{nty/global/}
+  \entry{bull}{article}{}
+    \name{author}{2}{}{%
+      {{hash=BMJ}{%
+         family={Bull},
+         familyi={B\bibinitperiod},
+         given={M.\bibnamedelima J.},
+         giveni={M\bibinitperiod\bibinitdelim J\bibinitperiod},
+      }}%
+      {{hash=PNT}{%
+         family={Plummer},
+         familyi={P\bibinitperiod},
+         given={N.\bibnamedelima T.},
+         giveni={N\bibinitperiod\bibinitdelim T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{BMJPNT1}
+    \strng{fullhash}{BMJPNT1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{B}
+    \field{sortinithash}{B}
+    \field{number}{6}
+    \field{pages}{17\bibrangedash 22}
+    \field{title}{Part 1: The Human Gut Microbiome in Health and Disease}
+    \field{volume}{13}
+    \field{journaltitle}{Integrative Medicine: A Clinician’s Journal}
+    \field{year}{2014}
+  \endentry
+
+  \entry{Burzykowski2005}{book}{}
+    \name{author}{3}{}{%
+      {{hash=BT}{%
+         family={Burzykowski},
+         familyi={B\bibinitperiod},
+         given={Tomasz},
+         giveni={T\bibinitperiod},
+      }}%
+      {{hash=MG}{%
+         family={Molenberghs},
+         familyi={M\bibinitperiod},
+         given={Geert},
+         giveni={G\bibinitperiod},
+      }}%
+      {{hash=BM}{%
+         family={Buyse},
+         familyi={B\bibinitperiod},
+         given={Marc},
+         giveni={M\bibinitperiod},
+      }}%
+    }
+    \list{language}{1}{%
+      {English}%
+    }
+    \list{publisher}{1}{%
+      {Springer}%
+    }
+    \keyw{zebra; Wiskundige statistiek}
+    \strng{namehash}{BTMGBM1}
+    \strng{fullhash}{BTMGBM1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{B}
+    \field{sortinithash}{B}
+    \field{isbn}{0387202773;9780387202778;}
+    \field{title}{The evaluation of surrogate endpoints}
+    \field{volume}{2005: 2}
+    \list{location}{1}{%
+      {New York, NY}%
+    }
+  \endentry
+
+  \entry{ursell}{article}{}
+    \name{author}{4}{}{%
+      {{hash=ULK}{%
+         family={Ursell},
+         familyi={U\bibinitperiod},
+         given={L.\bibnamedelima K.},
+         giveni={L\bibinitperiod\bibinitdelim K\bibinitperiod},
+      }}%
+      {{hash=MJL}{%
+         family={Metcalf},
+         familyi={M\bibinitperiod},
+         given={J.\bibnamedelima L.},
+         giveni={J\bibinitperiod\bibinitdelim L\bibinitperiod},
+      }}%
+      {{hash=PLW}{%
+         family={Parfrey},
+         familyi={P\bibinitperiod},
+         given={L.\bibnamedelima W.},
+         giveni={L\bibinitperiod\bibinitdelim W\bibinitperiod},
+      }}%
+      {{hash=KR}{%
+         family={Knight},
+         familyi={K\bibinitperiod},
+         given={R.},
+         giveni={R\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{ULK+1}
+    \strng{fullhash}{ULKMJLPLWKR1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{U}
+    \field{sortinithash}{U}
+    \verb{doi}
+    \verb http://doi.org/10.1111/j.1753-4887.2012.00493.x
+    \endverb
+    \field{number}{Suppl 1}
+    \field{pages}{S38\bibrangedash S44}
+    \field{title}{Defining the Human Microbiome}
+    \field{volume}{70}
+    \field{journaltitle}{Nutirition Reviews}
+    \field{year}{2012}
+  \endentry
+\endsortlist
+\endinput

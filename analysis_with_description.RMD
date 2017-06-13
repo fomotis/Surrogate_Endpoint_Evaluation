@@ -6,6 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
+rm(list=ls())
 library(tidyverse)
 library(readxl)
 library(ggplot2)
@@ -17,7 +18,10 @@ library(Biobase)
 library(siggenes)
 library(limma)
 library(multtest)
-library(class)
+library(IntegratedJM)
+library(nlme)
+library(Surrogate)
+library(xtable)
 knitr::opts_chunk$set(echo=F,message=F,warning=F)
 ```
 
@@ -25,11 +29,13 @@ knitr::opts_chunk$set(echo=F,message=F,warning=F)
 
 ```{r reading_data}
 p_data <- read_excel("./Data/Dataset_Thesis.xlsx",sheet=1,range="A1:AJ17",col_names=T)
+p_data$trt[p_data$treatment=="own_feces"] <- 0
+p_data$trt[p_data$treatment=="donorfeces"] <- 1
 #taking log of the counts
-datalog <- data.frame(apply(p_data %>% select(-patient,-age,-treatment,-rdt0,
-                                     -rdt6,-Diff_rdt6_rdt0),2,log))
+datalog <- data.frame(apply(p_data %>% dplyr::select(-patient,-age,-treatment,-rdt0,
+                                     -rdt6,-Diff_rdt6_rdt0,-trt),2,log))
 #all counts of bacteria logged
-p_datalog <- data.frame(bind_cols(p_data %>% select(patient,age,treatment,rdt0,rdt6,
+p_datalog <- data.frame(bind_cols(p_data %>% dplyr::select(patient,age,treatment,rdt0,rdt6,
                                          Diff_rdt6_rdt0), datalog))
 ```
 
@@ -38,8 +44,8 @@ p_datalog <- data.frame(bind_cols(p_data %>% select(patient,age,treatment,rdt0,r
 
 ```{r exploration}
 #matrix of only surrogates
-S <- data.frame(p_data %>% select(-treatment,-patient,-age,-rdt0,-rdt6,-Diff_rdt6_rdt0))
-S_log <- data.frame(p_datalog %>% select(-treatment,-patient,-age,-rdt0,-rdt6,-Diff_rdt6_rdt0))
+S <- data.frame(p_data %>% dplyr::select(-treatment,-patient,-age,-rdt0,-rdt6,-Diff_rdt6_rdt0,-trt))
+S_log <- data.frame(p_datalog %>% dplyr::select(-treatment,-patient,-age,-rdt0,-rdt6,-Diff_rdt6_rdt0))
 pps <- seq(0,27,3)
 for(i in 1:10){
   par(mfrow=c(3,2))
@@ -51,16 +57,16 @@ for(i in 1:10){
     #experimental treatment
     plot(S[,a],p_data$Diff_rdt6_rdt0,type="n", xlab="Surrogate",
          ylab="True",main=paste0("Counts","(Surrogate",a,")"))
-    points(S[p_data$treatment=="donorfeces",a],p_data$Diff_rdt6_rdt0[p_data$treatment=="donorfeces"],cex=2,pch=19,col="green3")
+    points(S[p_data$treatment=="donorfeces",a],p_data$Diff_rdt6_rdt0[p_data$treatment=="donorfeces"],pch=19,col="green3")
     #control treatment
-    points(S[p_data$treatment=="own_feces",a],p_data$Diff_rdt6_rdt0[p_data$treatment=="own_feces"],cex=2,pch=19,col="red3")
+    points(S[p_data$treatment=="own_feces",a],p_data$Diff_rdt6_rdt0[p_data$treatment=="own_feces"],pch=19,col="red3")
     
     #log version
     plot(S_log[,a],p_datalog$Diff_rdt6_rdt0,type="n",xlab="Surrogate",ylab="True",main=paste0("Logcounts","(Surrogate",a,")"))
     #experimental treatment
-    points(S_log[p_datalog$treatment=="donorfeces",a],p_datalog$Diff_rdt6_rdt0[p_datalog$treatment=="donorfeces"],cex=2,pch=19,col="green3")
+    points(S_log[p_datalog$treatment=="donorfeces",a],p_datalog$Diff_rdt6_rdt0[p_datalog$treatment=="donorfeces"],pch=19,col="green3")
     #control treatment
-  points(S_log[p_datalog$treatment=="own_feces",a],p_datalog$Diff_rdt6_rdt0[p_datalog$treatment=="own_feces"],cex=2,pch=19,col="red3")
+  points(S_log[p_datalog$treatment=="own_feces",a],p_datalog$Diff_rdt6_rdt0[p_datalog$treatment=="own_feces"],pch=19,col="red3")
   }
 }
 ##experimental treatment == green
@@ -82,9 +88,11 @@ wilcox.test(Diff_rdt6_rdt0~treatment,data=p_data,alternative="two.sided",conf.in
 
 ## Testing Hypothesis of Treatment Effect on Surrogates
 
-```{r surrogates_test}
+### Raw Counts
+
+```{r surrogates_test,eval=FALSE}
 #test using raw counts
-surrogates <- data.frame(p_data %>% select(-Diff_rdt6_rdt0,-age,-rdt0,-rdt6,-patient))
+surrogates <- data.frame(p_data %>% dplyr::select(-Diff_rdt6_rdt0,-age,-rdt0,-rdt6,-patient,-trt))
 #t-test parameters
 fc <- numeric(31)
 t_stat <- numeric(31)
@@ -116,18 +124,26 @@ t_stat <- t_stat[-1]
 w_stat <- w_stat[-1]
 
 #Volcano plot 1(t-test)
-plot(x=fc,y=-log(p.val),main="Volcano Plot for t-test",pch=20)
+plot(x=fc,y=-log(p.val),main="Volcano Plot for t-test",pch=20,type="n")
+points(x=fc[p.val<0.05],y=-log(p.val)[p.val<0.05],col="red2",pch=20)
+points(x=fc[p.val>=0.05],y=-log(p.val)[p.val>=0.05],col="black",pch=20)
 
 #Volcano plot 2(wilcoxon-test)
-plot(x=fc,y=-log(p.val2),main="Volcano Plot for wilcoxon test",pch=20)
+plot(x=fc,y=-log(p.val2),main="Volcano Plot for wilcoxon test",pch=20,type="n")
+points(x=fc[p.val2<0.05],y=-log(p.val2)[p.val2<0.05],col="red2")
+points(x=fc[p.val2>=0.05],y=-log(p.val2)[p.val2>=0.05],col="red2")
 
 #adjusting the raw p-values(t-test)
 t.adj_pval <- mt.rawp2adjp(p.val,proc=c("BH"))
-data.frame(Surrogate=t.adj_pval$index,t.adj_pval$adjp)
+kable(data.frame(Surrogate=t.adj_pval$index,t.adj_pval$adjp,fc),caption="T-Test")
 #
 w.adj_pval <- mt.rawp2adjp(p.val2,proc=c("BH"))
-data.frame(Surrogate=w.adj_pval$index,w.adj_pval$adjp)
+kable(data.frame(Surrogate=w.adj_pval$index,w.adj_pval$adjp,fc),caption="W-Test")
+```
 
+### Log of Counts
+
+```{r}
 ###test using the log of counts of the surrogates
 surrogates_log <- data.frame(apply(surrogates[,-1],2,log))
 surrogates_log$treatment <- surrogates$treatment
@@ -138,7 +154,6 @@ p.val_log <- numeric(30)
 #wilcoxon test parameters
 wlog_stat <- numeric(30)
 plog.val2 <- numeric(30)
-
 
 for(i in 1:30){
   ##Using t-test
@@ -156,25 +171,205 @@ for(i in 1:30){
 }
 
 #Volcano plot 3(t-test)
-plot(x=fc_log,y=-log(p.val_log),main="Volcano Plot for t-test(log counts)",pch=20)
+plot(x=fc_log,y=-log(p.val_log),main="Volcano Plot for t-test(log counts)",pch=20,type="n")
+points(x=fc_log[p.val_log<0.05],y=-log(p.val_log)[p.val_log<0.05],col="red2",pch=20)
+text(x=fc_log[p.val_log<0.05],y=-log(p.val_log)[p.val_log<0.05],labels=c(1:30)[p.val_log<0.05])
+points(x=fc_log[p.val_log>=0.05],y=-log(p.val_log)[p.val_log>=0.05],col="red2",pch=20)
 
 #Volcano plot 4(wilcoxon-test)
-plot(x=fc_log,y=-log(plog.val2),main="Volcano Plot for wilcoxon test(log counts)",pch=20)
+plot(x=fc_log,y=-log(plog.val2),main="Volcano Plot for wilcoxon test(log counts)",pch=20,type="n")
+points(x=fc_log[plog.val2<0.05],y=-log(plog.val2)[plog.val2<0.05],col="red2",pch=20)
+text(x=fc_log[plog.val2<0.05],y=-log(plog.val2)[plog.val2<0.05],labels=c(1:30)[plog.val2<0.05])
+points(x=fc_log[plog.val2>=0.05],y=-log(plog.val2)[plog.val2>=0.05],col="black",pch=20)
 
 #adjusting the raw p-values
 #t test
 tlog.adj <- mt.rawp2adjp(p.val_log,proc=c("BH"))
-data.frame(Surrogate=tlog.adj$index,tlog.adj$adjp)
+kable(data.frame(Surrogate=tlog.adj$index,tlog.adj$adjp,fc),caption="T-test")
 
 #wilcoxon
 wlog.adj <- mt.rawp2adjp(plog.val2,proc=c("BH"))
-data.frame(Surrogate=wlog.adj$index,wlog.adj$adjp)
+kable(data.frame(Surrogate=wlog.adj$index,wlog.adj$adjp,fc),caption="W-test")
 ```
 
-## Variance-Covariane Matrix Computation
+## Univariate Approach
 
-```{r}
+### Joint Modelling Approach
+
+```{r jointmodelling}
+### Joint Model 2 using log of counts
+# true_endpoint
+resVector <- p_data$Diff_rdt6_rdt0
+#treatment
+trt <- p_data$trt
+#matrix for surrogates
+#Slog_matrix <- t(as.matrix(S_log))
+#JM2 <- fitJM(dat=Slog_matrix,responseVector=resVector,covariate=trt,methodMultTest="fdr")
+#kable(JM2)
+#topkGenes(JM2,subset_type="Effect and Correlation",ranking="Pearson",sigLevel=0.10)
+
+####Having to program the joint model
+pearsonADJ <- numeric(30)
+pearsonADJ_interval <- vector("list",30)
+pearsonUNADJ <- numeric(30)
+s_trt_effect <- numeric(30)
+spval_trt_effect <- numeric(30)
+rho_pval <- numeric(30)
+
+for(i in 1:30){
+joint_data <- p_data %>% dplyr::select(Patients=patient,T=Diff_rdt6_rdt0,Treatment=trt) %>% mutate(S=S_log[,i]) %>%
+  gather(key=Endpoint,value=Measure,-Treatment,-Patients)
+joint_data <- data.frame(joint_data)
+#true endpoint=1
+joint_data$EP[joint_data$Endpoint=="S"] <- 1
+#surrogate=2
+joint_data$EP[joint_data$Endpoint=="T"] <- 2
+
+#fitting the joint models with gls function (assuming unadjusted association is not 0)
+jm <- gls(Measure~Treatment*as.factor(EP),correlation=corSymm(form=~EP|Patients),weights=varIdent(form=~1|EP),data=joint_data,method="ML")
+#getting the variance covariance matrix
+vcovjm <- getVarCov(jm)
+
+# reduced joint model
+jmR <- gls(Measure~Treatment*as.factor(EP),weights=varIdent(form=~1|EP),data=joint_data,method="ML")
+
+#adjusted association
+pearsonADJ[[i]] <- vcovjm[1,2]/sqrt(vcovjm[1,1]*vcovjm[2,2])
+#confidence interval
+Z_adj <- 0.5*log((1 + pearsonADJ[[i]])/(1 - pearsonADJ[[i]]))
+upperZ_adj <- Z_adj + (qnorm(1 - 0.05/2) * sqrt(1/(16 - 3)))
+lowerZ_adj <- Z_adj - (qnorm(1 - 0.05/2) * sqrt(1/(16 - 3)))
+##backtransform
+pearsonADJ_interval[[i]] <- round((exp(2*c(lowerZ_adj,upperZ_adj)) - 1)/(exp(2*c(lowerZ_adj,upperZ_adj)) + 1),2)
+
+##testing if adjusted association is 0
+rho_pval[i] <- anova(jm,jmR)["jmR","p-value"]
+
+#unadjusted association
+pearsonUNADJ[i] <- cor(joint_data$Measure[joint_data$EP==1],joint_data$Measure[joint_data$EP==2])
+#treatment effect on surrogate
+s_trt_effect[i] <- summary(jm)$tTable["Treatment","Value"]
+#pvalue
+spval_trt_effect[i] <- summary(jm)$tTable["Treatment","p-value"]
+}
+
+#pvalues adjusted for multiplicity(adjusted association)
+rho_pvaladj <- mt.rawp2adjp(rho_pval,proc=c("BH"))
+#re-order accordingly
+rho_pvaladj <- data.frame(index=rho_pvaladj$index,BH=rho_pvaladj$adjp[,"BH"])
+rho_pvaladj <- rho_pvaladj[order(rho_pvaladj$index),"BH"]
+
+#treatment effect adjusted for multiplicity
+spvaladj <- mt.rawp2adjp(spval_trt_effect,proc=c("BH"))
+#re-order accordingly
+spvaladj <- data.frame(index=spvaladj$index,BH=spvaladj$adjp[,"BH"])
+spvaladj <- spvaladj[order(spvaladj$index),"BH"]
+
+#extracting the confidence intervals
+lower <- base::sapply(pearsonADJ_interval,"[",1)
+upper <- base::sapply(pearsonADJ_interval,"[",2)
+
+#putting things together
+jm_results <- data.frame(UN_Assoc=pearsonUNADJ,ADJ_ASSOC=pearsonADJ,Lower_CI=lower,Upper_CI=upper,rhopval=rho_pval,rhopvaladj=rho_pvaladj,S_Trt=s_trt_effect,pval=spval_trt_effect,pvaladj=spvaladj)
+#sorting and arranging by adjusted association
+jm_results <- jm_results[order(jm_results$ADJ_ASSOC,decreasing=T),]
+kable(jm_results)
+print(xtable(jm_results),include.rownames=F)
+```
+
+
+### Causal Inference Approach
+
+```{r univariate}
+set.seed(123)
+#T == True Endpoint, S == Surrogate
+#CONTROL
+T_control_endpoint <- p_datalog %>% filter(p_data$treatment=='own_feces') %>% dplyr::select(Diff_rdt6_rdt0)
+S_control_endpoint <- p_datalog %>% filter(p_data$treatment=='own_feces') %>% dplyr::select(-patient,-age,-treatment,-rdt0,-rdt6,-Diff_rdt6_rdt0,-trt)
+
+#Experimental
+T_Exp_endpoint <- p_datalog %>% filter(p_data$treatment=='donorfeces') %>% dplyr::select(Diff_rdt6_rdt0)
+S_Exp_endpoint <- p_datalog %>% filter(p_data$treatment=='donorfeces') %>% dplyr::select(-patient,-age,-treatment,-rdt0,-rdt6,-Diff_rdt6_rdt0,-trt)
+
+#loop over all surrogates
+icas <- numeric(30)
+good <- vector("list",30)
+pd_mat <- vector("list",30)
+t0s0 <- numeric(30)
+t0s0_interval <- vector("list",30)
+t1s1 <- numeric(30)
+t1s1_interval <- vector("list",30)
+
+for(i in 1:30){
+  #observed association under control
+  t0s0[[i]] <- cor(T_control_endpoint,S_control_endpoint[,i])
+  #confidence interval
+  Z_t0s0 <- 0.5*log((1 + t0s0[[i]])/(1 - t0s0[[i]]))
+  upperZ_t0s0 <- Z_t0s0 + (qnorm(1 - 0.05/2) * sqrt(1/(16 - 3)))
+  lowerZ_t0s0 <- Z_t0s0 - (qnorm(1 - 0.05/2) * sqrt(1/(16 - 3)))
+  t0s0_interval[[i]] <- round((exp(2*c(lowerZ_t0s0,upperZ_t0s0)) - 1)/(exp(2*c(lowerZ_t0s0,upperZ_t0s0)) + 1),2)
+  
+  #observed association under experimental
+  t1s1[[i]] <- cor(T_Exp_endpoint,S_Exp_endpoint[,i])
+  #confidence interval
+  Z_t1s1 <- 0.5*log((1 + t1s1[[i]])/(1 - t1s1[[i]]))
+  upperZ_t1s1 <- Z_t1s1 + (qnorm(1 - 0.05/2) * sqrt(1/(16 - 3)))
+  lowerZ_t1s1 <- Z_t1s1 - (qnorm(1 - 0.05/2) * sqrt(1/(16 - 3)))
+  t1s1_interval[[i]] <- round((exp(2*c(lowerZ_t1s1,upperZ_t1s1)) - 1)/(exp(2*c(lowerZ_t1s1,upperZ_t1s1)) + 1),2)
+  
+  #Computation of ICA
+  mod_ica <- ICA.ContCont(T0S0=t0s0[[i]], T1S1=t1s1[[i]],T1T1=1, S0S0=1, S1S1=1,T0T1=seq(-1, 1, by=.1), 
+                          T0S1=seq(-1, 1, by=.1), T1S0=seq(-1, 1, by=.1), S0S1=seq(-1, 1, by=.1))
+  icas[i] <- mod_ica$ICA
+  good[[i]] <- mod_ica$GoodSurr
+  pd_mat[[i]] <- mod_ica$Pos.Def
+}
+
+#plots of ICA and delta(PMSE)
+lower_ICA <- numeric(30)
+upper_ICA <- numeric(30)
+
+for(i in 1:10){
+  par(mfrow=c(3,2))
+  a <- pps[i]
+  for(j in 1:3){
+    a <- a+1
+    if(a > 30) break
+    hist(good[[a]]$ICA,probability=T,col="cyan3",xlab=expression(rho[Delta]),main=paste0("Surrogate",a))
+    hist(good[[a]]$delta,probability=T,col="cyan3",xlab=expression(delta),main=paste0("Surrogate",a)) 
+    lower_ICA[[a]] <- range(good[[a]]$ICA)[1]
+    upper_ICA[[a]] <- range(good[[a]]$ICA)[2]
+  }
+}
+
+###Putting things together in a table
+lower_t0s0 <- sapply(t0s0_interval,"[",1)
+upper_t0s0 <- sapply(t0s0_interval,"[",2)
+
+lower_t1s1 <- sapply(t1s1_interval,"[",1)
+upper_t1s1 <- sapply(t1s1_interval,"[",2)
+
+ICA_table <- data.frame(Surrogates=1:30,rho0=t0s0,Lower_CI0=lower_t0s0,Upper_CI0=upper_t0s0,rho1=t1s1,Lower_CI1=lower_t1s1,Upper_CI1=upper_t1s1,ICA=icas,lower_range=lower_ICA,upper_range=upper_ICA)
+kable(ICA_table[order(ICA_table$ICA,decreasing=T),])
+#print(xtable(ICA_table[order(ICA_table$ICA,decreasing=T),]),include.rownames=F)
+```
+
+
+
+## Multivariate Analysis
+
+### Variance-Covariane Matrix Computation
+
+```{r MCIA}
 #variance-covariance matrix and correlation
+c_matrix <- p_data %>% dplyr::select(-patient,-age,-rdt0,-rdt6,-trt) %>% split(.$treatment) %>% map(cor)
+
+
+
+
+
+
+
 cmatrix1 <- cor(p_datalog[,6:ncol(p_datalog)])
 #variance-covariance matrix by treatment
 #donor_feces
@@ -189,7 +384,6 @@ names(ofeces) <- paste0("of_",names(ofeces))
 
 
 ```
-
 
 
 
