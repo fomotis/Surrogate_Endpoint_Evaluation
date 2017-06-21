@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (MiKTeX 2.9) (preloaded format=pdflatex 2016.3.8)  13 JUN 2017 17:35
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (MiKTeX 2.9) (preloaded format=pdflatex 2016.3.8)  21 JUN 2017 18:39
 entering extended mode
 **./Thesis_MasterFile.tex
 (Thesis_MasterFile.tex
@@ -1243,13 +1243,19 @@ LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10> not available
 \tf@toc=\write7
 \openout7 = `Thesis_MasterFile.toc'.
 
+
+
+LaTeX Warning: Citation 'Burzykowski2005' on page 2 undefined on input line 136
+.
+
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <7> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 136.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 138.
- [2]
+[2]
 LaTeX Font Info:    Try loading font information for OT1+pcr on input line 167.
 
-
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\psnfss\ot1pcr.fd"
+ ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\psnfss\ot1pcr.fd"
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 170.
@@ -1261,17 +1267,26 @@ Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 170.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 170.
 Package rerunfilecheck Info: File `Thesis_MasterFile.out' has not changed.
 (rerunfilecheck)             Checksum: 77EC4F4B42B692BDFF6EE0846DA5E68B;970.
+
+
+LaTeX Warning: There were undefined references.
+
+
+Package biblatex Warning: Please (re)run BibTeX on the file(s):
+(biblatex)                Thesis_MasterFile
+(biblatex)                and rerun LaTeX afterwards.
+
 Package logreq Info: Writing requests to 'Thesis_MasterFile.run.xml'.
 \openout1 = `Thesis_MasterFile.run.xml'.
 
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 170.
  ) 
 Here is how much of TeX's memory you used:
- 16478 strings out of 493634
- 264633 string characters out of 3141312
+ 16470 strings out of 493634
+ 264428 string characters out of 3141312
  554578 words of memory out of 3000000
- 19581 multiletter control sequences out of 15000+200000
- 32098 words of font info for 75 fonts, out of 3000000 for 9000
+ 19573 multiletter control sequences out of 15000+200000
+ 33724 words of font info for 77 fonts, out of 3000000 for 9000
  1025 hyphenation exceptions out of 8191
  45i,11n,45p,924b,1543s stack positions out of 5000i,500n,10000p,200000b,50000s
 {C:/Program Files (x86)/MiKTeX 2.9/fonts/enc/dvips/fontname/8r.enc}<C:/Progra
@@ -1281,9 +1296,9 @@ TeX 2.9/fonts/type1/urw/helvetic/uhvro8a.pfb><C:/Program Files (x86)/MiKTeX 2.9
 /fonts/type1/urw/times/utmb8a.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type
 1/urw/times/utmr8a.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/urw/times
 /utmri8a.pfb>
-Output written on Thesis_MasterFile.pdf (3 pages, 85882 bytes).
+Output written on Thesis_MasterFile.pdf (3 pages, 84291 bytes).
 PDF statistics:
- 129 PDF objects out of 1000 (max. 8388607)
- 24 named destinations out of 1000 (max. 500000)
+ 127 PDF objects out of 1000 (max. 8388607)
+ 23 named destinations out of 1000 (max. 500000)
  113 words of extra memory for PDF output out of 10000 (max. 10000000)
 
