@@ -92,10 +92,8 @@ The human microbiome is made up of trillions of symbiotic bacteria cells in huma
 \subsection{Surrogate Endpoints \& its Evaluation}
 Essentially the the idea of surrogate endpoints (as they are popularly referred to) is appealing, their evaluation is as well not a trivial task\citep{surrogate2}. The non-triviality of the task of searching for and consequently validating a surrogate endpoint has not deferred research tailored at finding and developing methods for validating these endpoints\citep{surrogate2, surrogate3,surrogate1}. 
 
-\subsection{Aims \&Objectives}
-The chief aim of this thesis is to validate elements of the human microbiome, specifically the gut microbiome as potential surrogates for insulin sensitivity in patients with metabolic disorder. All individual elements of the gut microbiome are going to be validated as surrogates and also a combination of these elements will also be validated as potential surrogates. 
-
-This is essential since the full function of the human microbiome is 
+\subsection{Aims \& Objectives}
+The chief aim of this thesis is to validate elements of the human microbiome, specifically the gut microbiome as potential surrogates for insulin sensitivity in patients with metabolic disorder. Individual elements of the gut microbiome are going to be validated as surrogates and also a combination of these elements will also be validated as potential surrogates. This is essential since the full function of the human microbiome is unknown, hence being able to assertain that some elements of the microbiome can serve as potential surrogates 
 
 \subsection{Dataset Description \& Source}
 
