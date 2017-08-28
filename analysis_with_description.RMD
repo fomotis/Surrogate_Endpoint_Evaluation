@@ -13,15 +13,14 @@ library(ggplot2)
 library(GGally)
 library(knitr)
 library(exactRankTests)
-library(glmnet)
 library(Biobase)
 library(siggenes)
-library(limma)
 library(multtest)
-library(IntegratedJM)
 library(nlme)
 library(Surrogate)
 library(xtable)
+library(stringr)
+library(plot3D)
 knitr::opts_chunk$set(echo=F,message=F,warning=F)
 ```
 
@@ -56,13 +55,13 @@ for(i in 1:10){
     #original
     #experimental treatment
     plot(S[,a],p_data$Diff_rdt6_rdt0,type="n", xlab="Surrogate",
-         ylab="True",main=paste0("Counts","(Surrogate",a,")"))
+         ylab="True",main=paste0("Counts","(Surrogate",a,")"),frame.plot=F)
     points(S[p_data$treatment=="donorfeces",a],p_data$Diff_rdt6_rdt0[p_data$treatment=="donorfeces"],pch=19,col="green3")
     #control treatment
     points(S[p_data$treatment=="own_feces",a],p_data$Diff_rdt6_rdt0[p_data$treatment=="own_feces"],pch=19,col="red3")
     
     #log version
-    plot(S_log[,a],p_datalog$Diff_rdt6_rdt0,type="n",xlab="Surrogate",ylab="True",main=paste0("Logcounts","(Surrogate",a,")"))
+    plot(S_log[,a],p_datalog$Diff_rdt6_rdt0,type="n",xlab="Surrogate",ylab="True",main=paste0("Logcounts","(Surrogate",a,")"),frame.plot=F)
     #experimental treatment
     points(S_log[p_datalog$treatment=="donorfeces",a],p_datalog$Diff_rdt6_rdt0[p_datalog$treatment=="donorfeces"],pch=19,col="green3")
     #control treatment
@@ -82,8 +81,7 @@ for(i in 1:10){
 #t test version(assumption of normalty is questionable)
 t.test(Diff_rdt6_rdt0~treatment,data=p_data,alternative="two.sided",conf.int=T)
 #wilcoxon
-wilcox.test(Diff_rdt6_rdt0~treatment,data=p_data,alternative="two.sided",conf.int=T,
-            conf.level=0.95,exact=F)
+wilcox.test(Diff_rdt6_rdt0~treatment,data=p_data,alternative="two.sided",conf.int=T,conf.level=0.95,exact=F)
 ```
 
 ## Testing Hypothesis of Treatment Effect on Surrogates
@@ -155,6 +153,7 @@ p.val_log <- numeric(30)
 wlog_stat <- numeric(30)
 plog.val2 <- numeric(30)
 
+
 for(i in 1:30){
   ##Using t-test
  t_tests <- t.test(surrogates_log[,i]~surrogates_log[,31],alternative="two.sided")
@@ -165,31 +164,36 @@ for(i in 1:30){
  #p_value
  p.val_log[i] <- t_tests$p.value
  ##Using Wilcoxon test
-  w_tests <- wilcox.exact(surrogates_log[,i]~surrogates_log[,31],alternative="two.sided")
-  wlog_stat[i] <- w_tests$statistic
+  w_tests <- wilcox.exact(surrogates_log[,i]~surrogates_log[,31],alternative="two.sided",conf.int=T)
+  wlog_stat[i] <- w_tests$estimate
   plog.val2[i] <- w_tests$p.value
 }
 
-#Volcano plot 3(t-test)
-plot(x=fc_log,y=-log(p.val_log),main="Volcano Plot for t-test(log counts)",pch=20,type="n")
-points(x=fc_log[p.val_log<0.05],y=-log(p.val_log)[p.val_log<0.05],col="red2",pch=20)
-text(x=fc_log[p.val_log<0.05],y=-log(p.val_log)[p.val_log<0.05],labels=c(1:30)[p.val_log<0.05])
-points(x=fc_log[p.val_log>=0.05],y=-log(p.val_log)[p.val_log>=0.05],col="red2",pch=20)
-
-#Volcano plot 4(wilcoxon-test)
-plot(x=fc_log,y=-log(plog.val2),main="Volcano Plot for wilcoxon test(log counts)",pch=20,type="n")
-points(x=fc_log[plog.val2<0.05],y=-log(plog.val2)[plog.val2<0.05],col="red2",pch=20)
-text(x=fc_log[plog.val2<0.05],y=-log(plog.val2)[plog.val2<0.05],labels=c(1:30)[plog.val2<0.05])
-points(x=fc_log[plog.val2>=0.05],y=-log(plog.val2)[plog.val2>=0.05],col="black",pch=20)
 
 #adjusting the raw p-values
 #t test
 tlog.adj <- mt.rawp2adjp(p.val_log,proc=c("BH"))
-kable(data.frame(Surrogate=tlog.adj$index,tlog.adj$adjp,fc),caption="T-test")
+kable(data.frame(Surrogate=tlog.adj$index,tlog.adj$adjp,fc_log),caption="T-test")
 
 #wilcoxon
 wlog.adj <- mt.rawp2adjp(plog.val2,proc=c("BH"))
-kable(data.frame(Surrogate=wlog.adj$index,wlog.adj$adjp,fc),caption="W-test")
+kable(data.frame(Surrogate=wlog.adj$index,wlog.adj$adjp,wlog_stat),caption="W-test")
+
+
+###plotting after adjusting for multiplicity
+#Volcano plot 3(t-test)
+plot(x=fc_log,y=-log(p.val_log),main="Volcano Plot for t-test(log counts)",pch=20,type="n",frame.plot=F,xlab="Fold Change",ylab=expression(-log(p-value)))
+points(x=fc_log[tlog.adj$adjp[,'BH']<0.10],y=-log(p.val_log)[tlog.adj$adjp[,'BH']<0.10],col="red2",pch=20,cex=1.5)
+points(x=fc_log[tlog.adj$adjp[,'BH']>=0.10],y=-log(p.val_log)[tlog.adj$adjp[,'BH']>=0.10],col="black",pch=20)
+text(x=fc_log[tlog.adj$adjp[,'BH']<0.10],y=-log(p.val_log)[tlog.adj$adjp[,'BH']<0.10],labels=tlog.adj$index[tlog.adj$adjp[,'BH']<0.10])
+
+#Volcano plot 4(wilcoxon-test)
+plot(x=wlog_stat,y=-log(plog.val2),main="Volcano Plot for wilcoxon test(log counts)",pch=20,type="n",frame.plot=F,xlab="Fold Change",ylab=expression(-log(p-value)))
+points(x=wlog_stat[wlog.adj$adjp[,'BH']<0.10],y=-log(plog.val2)[wlog.adj$adjp[,'BH']<0.10],col="red2",pch=20,cex=1.5)
+text(x=wlog_stat[wlog.adj$adjp[,'BH']<0.10],y=-log(plog.val2)[wlog.adj$adjp[,'BH']<0.10],labels=wlog.adj$index[wlog.adj$adjp[,'BH']<0.10])
+points(x=wlog_stat[wlog.adj$adjp[,'BH']>=0.10],y=-log(plog.val2)[wlog.adj$adjp[,'BH']>=0.10],col="black",pch=20)
+
+
 ```
 
 ## Univariate Approach
@@ -213,8 +217,14 @@ pearsonADJ <- numeric(30)
 pearsonADJ_interval <- vector("list",30)
 pearsonUNADJ <- numeric(30)
 s_trt_effect <- numeric(30)
+T_trt_effect <- numeric(30)
 spval_trt_effect <- numeric(30)
 rho_pval <- numeric(30)
+#for the treatment effect on true endpoint standard error
+serror_Teffect <- numeric(30)
+
+#list for the residuals
+residual_vector <- vector("list",30)
 
 for(i in 1:30){
 joint_data <- p_data %>% dplyr::select(Patients=patient,T=Diff_rdt6_rdt0,Treatment=trt) %>% mutate(S=S_log[,i]) %>%
@@ -227,11 +237,20 @@ joint_data$EP[joint_data$Endpoint=="T"] <- 2
 
 #fitting the joint models with gls function (assuming unadjusted association is not 0)
 jm <- gls(Measure~Treatment*as.factor(EP),correlation=corSymm(form=~EP|Patients),weights=varIdent(form=~1|EP),data=joint_data,method="ML")
-#getting the variance covariance matrix
+#getting the variance covariance matrix of the residuals(marginal cov matrix)
 vcovjm <- getVarCov(jm)
+#getting variance covariance matrix for the main effect
+vcovmain <- vcov(jm)
+#computing se for treatment effect on true endpoint
+serror_Teffect[i] <- diag(vcovmain)[2] + diag(vcovmain)[4] - 
+  2*(vcovmain["Treatment","Treatment:as.factor(EP)2"])
+#
+residual_vector[[i]] <- jm$residuals
+
 
 # reduced joint model
 jmR <- gls(Measure~Treatment*as.factor(EP),weights=varIdent(form=~1|EP),data=joint_data,method="ML")
+
 
 #adjusted association
 pearsonADJ[[i]] <- vcovjm[1,2]/sqrt(vcovjm[1,1]*vcovjm[2,2])
@@ -251,6 +270,9 @@ pearsonUNADJ[i] <- cor(joint_data$Measure[joint_data$EP==1],joint_data$Measure[j
 s_trt_effect[i] <- summary(jm)$tTable["Treatment","Value"]
 #pvalue
 spval_trt_effect[i] <- summary(jm)$tTable["Treatment","p-value"]
+#treatment effect on true endpoint
+ T_trt_effect[i] <- summary(jm)$tTable["Treatment","Value"] +
+   summary(jm)$tTable["Treatment:as.factor(EP)2","Value"]
 }
 
 #pvalues adjusted for multiplicity(adjusted association)
@@ -259,7 +281,7 @@ rho_pvaladj <- mt.rawp2adjp(rho_pval,proc=c("BH"))
 rho_pvaladj <- data.frame(index=rho_pvaladj$index,BH=rho_pvaladj$adjp[,"BH"])
 rho_pvaladj <- rho_pvaladj[order(rho_pvaladj$index),"BH"]
 
-#treatment effect adjusted for multiplicity
+#treatment effect on surrogates adjusted for multiplicity
 spvaladj <- mt.rawp2adjp(spval_trt_effect,proc=c("BH"))
 #re-order accordingly
 spvaladj <- data.frame(index=spvaladj$index,BH=spvaladj$adjp[,"BH"])
@@ -270,11 +292,48 @@ lower <- base::sapply(pearsonADJ_interval,"[",1)
 upper <- base::sapply(pearsonADJ_interval,"[",2)
 
 #putting things together
-jm_results <- data.frame(UN_Assoc=pearsonUNADJ,ADJ_ASSOC=pearsonADJ,Lower_CI=lower,Upper_CI=upper,rhopval=rho_pval,rhopvaladj=rho_pvaladj,S_Trt=s_trt_effect,pval=spval_trt_effect,pvaladj=spvaladj)
+jm_results <- data.frame(S=1:30,UN_Assoc=pearsonUNADJ,ADJ_ASSOC=pearsonADJ,Lower_CI=lower,Upper_CI=upper,S_Trt=s_trt_effect,pval=spval_trt_effect,pvaladj=spvaladj,pval2=rho_pval,pval2adj=rho_pvaladj)
+
+##volcano plot for alpha
+plot(x=jm_results$S_Trt,y=-log(jm_results$pval),pch=20,type="n",
+     frame.plot=F,xlab=expression(alpha[j]),ylab=expression(-log(p-value)))
+
+points(x=jm_results$S_Trt[jm_results$pvaladj<0.05],y=-log(jm_results$pval)[jm_results$pvaladj<0.05],col="red2",pch=20,cex=1.5)
+
+text(x=jm_results$S_Trt[jm_results$pvaladj<0.05],y=-log(jm_results$pval)[jm_results$pvaladj<0.05],labels=jm_results$S[jm_results$pvaladj<0.05])
+
+points(x=jm_results$S_Trt[jm_results$pvaladj>0.05],y=-log(jm_results$pval)[jm_results$pvaladj>0.05],col="black",pch=20,cex=1.0)
+
+#plotting things
+plot(x=jm_results$S,
+     y=seq(min(jm_results$Lower_CI),max(jm_results$Upper_CI),length=30),
+     xaxt="n",frame.plot=F,type="n",
+     xlab="surrogates",
+     ylab=expression(rho["S,T|Z"]))
+axis(side=1,at=jm_results$S,labels=jm_results$S)
+points(x=jm_results$S,y=jm_results$ADJ_ASSOC,pch=20,cex=1.5)
+#top 3 in red
+segments(x0=jm_results$S[c(6,18,29)],y0=jm_results$Lower_CI[c(6,18,29)],
+         y1=jm_results$Upper_CI[c(6,18,29)],col="red3",lwd=2)
+#remaining top 7 in yellow
+segments(x0=jm_results$S[c(15,4,5,14,27,24,10)],
+         y0=jm_results$Lower_CI[c(15,4,5,14,27,24,10)],
+         y1=jm_results$Upper_CI[c(15,4,5,14,27,24,10)],
+         col="yellow3",lwd=2)
+#others in blue
+segments(x0=jm_results$S[!(jm_results$S %in% c(6,18,29,15,4,5,14,27,24,10))],
+         y0=jm_results$Lower_CI[!(jm_results$S %in% c(6,18,29,15,4,5,14,27,24,10))],
+         y1=jm_results$Upper_CI[!(jm_results$S %in% c(6,18,29,15,4,5,14,27,24,10))],
+         col="blue3",lwd=2)
+abline(h=0.0,lwd=1.5,lty=2)
+
+
+
 #sorting and arranging by adjusted association
-jm_results <- jm_results[order(jm_results$ADJ_ASSOC,decreasing=T),]
+jm_results <- jm_results[order(abs(jm_results$ADJ_ASSOC),decreasing=T),]
 kable(jm_results)
 print(xtable(jm_results),include.rownames=F)
+
 ```
 
 
@@ -301,6 +360,7 @@ t1s1 <- numeric(30)
 t1s1_interval <- vector("list",30)
 
 for(i in 1:30){
+  print(i)
   #observed association under control
   t0s0[[i]] <- cor(T_control_endpoint,S_control_endpoint[,i])
   #confidence interval
@@ -335,17 +395,18 @@ for(i in 1:10){
   for(j in 1:3){
     a <- a+1
     if(a > 30) break
-    hist(good[[a]]$ICA,probability=T,col="cyan3",xlab=expression(rho[Delta]),main=paste0("Surrogate",a))
-    hist(good[[a]]$delta,probability=T,col="cyan3",xlab=expression(delta),main=paste0("Surrogate",a)) 
+    hist(good[[a]]$ICA,probability=T,col="green3",xlab=expression(rho[Delta]),main=paste0("Surrogate",a))
+    hist(good[[a]]$delta,probability=T,col="green3",xlab=expression(delta),main=paste0("Surrogate",a)) 
     lower_ICA[[a]] <- range(good[[a]]$ICA)[1]
     upper_ICA[[a]] <- range(good[[a]]$ICA)[2]
   }
 }
 
-#how many icas > 0.8
+#how many icas > 0.5
 ica0.8 <- numeric(30)
 for(k in 1:30){
-ica0.8[[k]]  <- round((sum(good[[k]]$ICA > 0.8)/length(good[[k]]$ICA))*100,0)
+ica0.8[[k]]  <- round((sum(abs(good[[k]]$ICA) > 0.5) / length(good[[k]]$ICA))*100,0)
+print(length(good[[k]]$ICA))
 }
 
 ###Putting things together in a table
@@ -358,7 +419,35 @@ upper_t1s1 <- sapply(t1s1_interval,"[",2)
 ICA_table <- data.frame(Surrogates=1:30,rho0=t0s0,Lower_CI0=lower_t0s0,Upper_CI0=upper_t0s0,rho1=t1s1,Lower_CI1=lower_t1s1,Upper_CI1=upper_t1s1,ICA=icas,lower_range=lower_ICA,upper_range=upper_ICA)
 
 #plotting before ordering
-plot(x=1:30,y=icas,type="n",xlab="Surrogates",ylab=expression(rho[Delta]))
+plot(x=ICA_table$Surrogates,
+     y=seq(min(ICA_table$lower_range),max(ICA_table$upper_range),length=30),
+     xaxt="n",frame.plot=F,type="n",
+     xlab="surrogates",ylab=expression(rho[Delta]))
+axis(side=1,at=ICA_table$Surrogates,labels=ICA_table$Surrogates)
+axis(side=3,at=ICA_table$Surrogates,labels=ica0.8,
+     col.ticks="red")
+points(x=ICA_table$Surrogates,y=ICA_table$ICA,pch=20,cex=1.5)
+#top 3 in red
+segments(x0=ICA_table$Surrogates[c(6,18,15)],
+         y0=ICA_table$lower_range[c(6,18,15)],
+         y1=ICA_table$upper_range[c(6,18,15)],col="red3",lwd=2)
+#remaining top 7 including 4 in yellow
+segments(x0=ICA_table$Surrogates[c(4,17,19,24,29,14,5)],
+         y0=ICA_table$lower_range[c(4,17,19,24,29,14,5)],
+         y1=ICA_table$upper_range[c(4,17,19,24,29,14,5)],
+         col="yellow3",lwd=2)
+#others in blue
+segments(x0=ICA_table$Surrogates[!(ICA_table$Surrogates %in% c(6,18,15,4,17,19,24,29,14,5))],
+         y0=ICA_table$lower_range[!(ICA_table$lower_range %in% c(6,18,15,4,17,19,24,29,14,5))],
+         y1=ICA_table$upper_range[!(ICA_table$upper_range %in% c(6,18,15,4,17,19,24,29,14,5))],
+         col="blue3",lwd=2)
+mtext("% > 0.5",side=3,line=2)
+#abline(h=0.5,lwd=1.5,lty=2)
+#abline(h=-0.5,lwd=1.5,lty=2)
+
+
+##
+plot(x=ICA_table$Surrogates,y=icas,type="n",xlab="Surrogates",ylab=expression(rho[Delta]))
 axis(side=1,at=1:30,labels=paste0("S",1:30))
 axis(side=3,at=1:30,labels=ica0.8)
 #median of the icas for each surrogate
@@ -371,8 +460,13 @@ segments(x0=1:30, y0=lower_ICA,y1=upper_ICA)
 abline(h=0.5,lty=2,col="green3")
 abline(h=-0.5,lty=2,col="green3")
 
-kable(ICA_table[order(ICA_table$ICA,decreasing=T),])
-#print(xtable(ICA_table[order(ICA_table$ICA,decreasing=T),]),include.rownames=F)
+
+
+#plotting things
+
+
+kable(ICA_table[order(ICA_table$ICA^2,decreasing=T),])
+print(xtable(ICA_table[order(abs(ICA_table$ICA),decreasing=T),]),include.rownames=F)
 ```
 
 
@@ -383,9 +477,8 @@ kable(ICA_table[order(ICA_table$ICA,decreasing=T),])
 
 ```{r MICA}
 #variance-covariance matrix and correlation for the top three surrogates with #median above 0.5
-
-#using the top 2 surrogates from the joint modelling approach(18,29)
-s_rank <- c(18,6,15,17,19,24,29,14,5,22,26,4)
+#27 and 10 added
+s_rank <- c(18,6,15,4,17,19,24,29,14,5,27,10,22,2,20,23,8,26,11,9,3,30,28,1,12,13,7,16,25,21)
 
 #surrogate 18
 S18_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[18] )
@@ -423,27 +516,111 @@ S14_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(
 S5_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[5] )
 S5_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[5] )
 
+#surrogate 27
+S27_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[27] )
+S27_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[27] )
+
+#surrogate 10
+S10_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[10] )
+S10_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[10] )
+
+#surrogate 4
+S4_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[4] )
+S4_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[4] )
+
 #surrogate 22
 S22_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[22] )
 S22_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[22] )
+
+#surrogate 2
+S2_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[2] )
+S2_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[2] )
+
+#surrogate 20
+S20_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[20] )
+S20_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[20] )
+
+#surrogate 20
+S20_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[20] )
+S20_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[20] )
+
+#surrogate 23
+S23_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[23] )
+S23_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[23] )
+
+#surrogate 8
+S8_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[8] )
+S8_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[8] )
 
 #surrogate 26
 S26_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[26] )
 S26_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[26] )
 
-#surrogate 44
-S4_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[4] )
-S4_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[4] )
+#surrogate 11
+S11_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[11] )
+S11_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[11] )
+
+#surrogate 9
+S9_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[9] )
+S9_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[9] )
+
+#surrogate 3
+S3_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[3] )
+S3_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[3] )
+
+#surrogate 30
+S30_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[30] )
+S30_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[30] )
+
+#surrogate 28
+S28_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[28] )
+S28_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[28] )
+
+#surrogate 1
+S1_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[1] )
+S1_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[1] )
+
+#surrogate 12
+S12_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[12] )
+S12_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[12] )
+
+#surrogate 13
+S13_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[13] )
+S13_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[13] )
+
+#surrogate 7
+S7_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[7] )
+S7_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[7] )
+
+#surrogate 16
+S16_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[16] )
+S16_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[16] )
+
+#surrogate 25
+S25_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[25] )
+S25_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[25] )
+
+#surrogate 21
+S21_0 <- p_datalog %>% filter(treatment=="own_feces") %>% dplyr::select( names(S_log)[21] )
+S21_1 <- p_datalog %>% filter(treatment=="donorfeces") %>% dplyr::select( names(S_log)[21] )
 
 T0T1S0S1 <- list(T_control_endpoint,T_Exp_endpoint,S18_0,S18_1,S4_0,
                  S4_1,S15_0,S15_1,S17_0,S17_1,S19_0,S19_1,S24_0,S24_1,S29_0,
-                 S29_1,S14_0,S14_1,S5_0,S5_1,S22_0,S22_1,S26_0,S26_1,S6_0,S6_1)
+                 S29_1,S14_0,S14_1,S5_0,S5_1,S27_0,S27_1,S10_0,S10_1,S6_0,
+                 S6_1,S22_0,S22_1,S2_0,S2_1,S20_0,S20_1,S23_0,S23_1,S8_0,
+                 S8_1,S26_0,S26_1,S11_0,S11_1,S9_0,S9_1,S3_0,S3_1,S30_0,
+                 S30_1,S28_0,S28_1,S1_0,S1_1,S12_0,S12_1,S13_0,S13_1,S7_0,
+                 S7_1,S16_0,S16_1,S25_0,S25_1,S21_0,S21_1)
 
 #creating the 8x8 matrix for sigma
-sigma_matrix <- matrix(data=NA, ncol=26,nrow=26)
+sigma_matrix <- matrix(data=NA, ncol=62,nrow=62)
 rownames(sigma_matrix) <- colnames(sigma_matrix) <- c("T_0","T_1","S18_0","S18_1","S4_0","S4_1","S15_0","S15_1","S17_0","S17_1",
   "S19_0","S19_1","S24_0","S24_1","S29_0","S29_1","S14_0","S14_1","S5_0",
-  "S5_1","S22_0","S22_1","S26_0","S26_1","S6_0","S6_1")
+  "S5_1","S27_0","S27_1","S10_0","S10_1","S6_0","S6_1","S22_0","S22_1","S2_0"
+  ,"S2_1","S20_0","S20_1","S23_0","S23_1","S8_0","S8_1","S26_0","S26_1",
+  "S11_0","S11_1","S9_0","S9_1","S3_0","S3_1","S30_0","S30_1","S28_0","S28_1"
+  ,"S1_0","S1_1","S12_0","S12_1","S13_0","S13_1","S7_0","S7_1","S16_0",
+  "S16_1","S25_0","S25_1","S21_0","S21_1")
 #the variances
   diag(sigma_matrix) <- sapply(T0T1S0S1,var)
 #other identifiable part of the matrix
@@ -461,93 +638,9 @@ for(i in 1:nrow(sigma_matrix)){
   }
 }
 
-
-#based on the correlation matrix, surrogate 15 and 18 tend to agree 
-#more than any other combination
-#surrogate 15 and 18 
-sigma_matrix2 <- sigma_matrix[c("T_0","T_1","S18_0","S18_1","S15_0","S15_1"),
-                              c("T_0","T_1","S18_0","S18_1","S15_0","S15_1")]
-
-gs1518 <- ICA.ContCont.MultS(M=500,N=16,Sigma=sigma_matrix2,
-                              Show.Progress=T,Seed=1545)
-par(mfrow=c(1,2))
-#unadjusted MICA
-hist(gs1518$R2_H,col="green2",xlab=expression(R[H]^2),main="S15 and S18")
-#Adjusted MICA
-hist(gs1518$Corr.R2_H,col="green2",xlab=expression(R[H_adj]^2),main="S15 and S18")
-
-#removing surrogate 18 from the equation
-sigma_matrix4 <- sigma_matrix[c("T_0","T_1","S6_0","S6_1","S15_0","S15_1"),
-                              c("T_0","T_1","S6_0","S6_1","S15_0","S15_1")]
-
-gs615 <- ICA.ContCont.MultS(M=500,N=16,Sigma=sigma_matrix4,
-                              Show.Progress=T,Seed=1545)
-par(mfrow=c(1,2))
-#unadjusted MICA
-hist(gs615$R2_H,col="green2",xlab=expression(R[H]^2),main="S6 and S15")
-#Adjusted MICA
-hist(gs615$Corr.R2_H,col="green2",xlab=expression(R[H_adj]^2),main="S6 and S15")
-
-###top 2 from joint modelling approach
-#surrogate 18 and 29
-sigma_jm <- sigma_matrix[c("T_0","T_1","S18_0","S18_1","S29_0","S29_1"),
-                              c("T_0","T_1","S18_0","S18_1","S29_0","S29_1")]
-#mica
-gs1829 <- ICA.ContCont.MultS(M=500,N=16,Sigma=sigma_jm,
-                              Show.Progress=T,Seed=1545)
-par(mfrow=c(1,2))
-#unadjusted MICA
-hist(gs1829$R2_H,col="green2",xlab=expression(R[H]^2),main="S18 and S29")
-#Adjusted MICA
-hist(gs1829$Corr.R2_H,col="green2",xlab=expression(R[H_adj]^2),main="S18 and S29")
-
-#surrogate 18 and 4
-sigma_184 <- sigma_matrix[c("T_0","T_1","S18_0","S18_1","S4_0","S4_1"),
-                              c("T_0","T_1","S18_0","S18_1","S4_0","S4_1")]
-#mica
-gs184 <- ICA.ContCont.MultS(M=500,N=16,Sigma=sigma_184,
-                              Show.Progress=T,Seed=1545)
-par(mfrow=c(1,2))
-#unadjusted MICA
-hist(gs184$R2_H,col="green2",xlab=expression(R[H]^2),main="S18 and S4")
-#Adjusted MICA
-hist(gs184$Corr.R2_H,col="green2",xlab=expression(R[H_adj]^2),main="S18 and S4")
-
-#surrogate 18 and 22
-sigma_matrix1822 <- sigma_matrix[c("T_0","T_1","S18_0","S18_1","S22_0","S22_1"),c("T_0","T_1","S18_0","S18_1","S22_0","S22_1")]
-
-gs1822 <- ICA.ContCont.MultS(M=500,N=16,Sigma=sigma_matrix1822,
-                              Show.Progress=T,Seed=1545)
-#plotting things
-par(mfrow=c(1,2))
-#unadjusted MICA
-hist(gs1822$R2_H,col="green2",xlab=expression(R[H]^2),main="S18 and S22")
-#Adjusted MICA
-hist(gs1822$Corr.R2_H,col="green2",xlab=expression(R[H_adj]^2),main="S18 and S22")
-
-#surrogate 18 and 6
-sigma_matrix186 <- sigma_matrix[c("T_0","T_1","S18_0","S18_1","S6_0","S6_1"),c("T_0","T_1","S18_0","S18_1","S6_0","S6_1")]
-
-gs186 <- ICA.ContCont.MultS(M=500,N=16,Sigma=sigma_matrix186,
-                              Show.Progress=T,Seed=1545)
-#plotting things
-par(mfrow=c(1,2))
-#unadjusted MICA
-hist(gs186$R2_H,col="green2",xlab=expression(R[H]^2),main="S18 and S6")
-#Adjusted MICA
-hist(gs186$Corr.R2_H,col="green2",xlab=expression(R[H_adj]^2),main="S18 and S6")
-#S4 and S15
-sigma_matrix415 <- sigma_matrix[c("T_0","T_1","S4_0","S4_1","S15_0","S15_1"),c("T_0","T_1","S4_0","S4_1","S15_0","S15_1")]
-
-gs415 <- ICA.ContCont.MultS(M=500,N=16,Sigma=sigma_matrix415,
-                              Show.Progress=T,Seed=123)
-
-
-#####All bivariate causal inference approach
-b1 <- c("S18_0","S18_1","S4_0","S4_1","S15_0","S15_1","S17_0","S17_1",
-  "S19_0","S19_1","S24_0","S24_1","S29_0","S29_1","S14_0","S14_1","S5_0",
-  "S5_1","S22_0","S22_1","S26_0","S26_1","S6_0","S6_1")
-b2 <- seq(1,24,by=2)
+#####All bivariate causal inference approach involving surrogate 18
+b1 <- row.names(sigma_matrix)[-c(1,2)]
+b2 <- seq(1,length(b1),by=2)
 med_R2H <- c()
 lower_R2H <- c()
 upper_R2H <- c()
@@ -556,16 +649,17 @@ med_R2AH <- c()
 lower_R2AH <- c()
 upper_R2AH <- c()
 s_names <- c()
+mica0.7 <- c()
 
 for(i in 1:length(b2)){
-  if(i == length(b2)) break
+  if(i == length(b2) | b1[b2[i]] != "S18_0") break
   for(j in i:length(b2)){
     if(j == length(b2)) break
     ssmatrix <- sigma_matrix[c("T_0","T_1",b1[b2[i]],b1[b2[i]+1],
                               b1[b2[j+1]],b1[b2[j+1]+1]),
                             c("T_0","T_1",b1[b2[i]],b1[b2[i]+1],
                               b1[b2[j+1]],b1[b2[j+1]+1])]
-  gs <- ICA.ContCont.MultS(M=100,N=16,Sigma=ssmatrix,
+  gs <- ICA.ContCont.MultS(M=200,N=16,Sigma=ssmatrix,
                               Show.Progress=F,Seed=1545,
                               G=seq(from=-1, to=1, by = .01))
   med_R2H <- c(med_R2H,median(gs$R2_H))
@@ -575,76 +669,229 @@ for(i in 1:length(b2)){
   med_R2AH <- c(med_R2AH,median(gs$Corr.R2_H))
   lower_R2AH <- c(lower_R2AH,range(gs$Corr.R2_H)[1])
   upper_R2AH <- c(upper_R2AH,range(gs$Corr.R2_H)[2])
+  #
+  mica0.7 <- c(mica0.7,(sum(gs$Corr.R2_H > 0.7)/length(gs$Corr.R2_H))*100)
   #plotting things
   par(mfrow=c(1,2))
   #unadjusted MICA
   hist(gs$R2_H,col="green2",xlab=expression(R[H]^2),
-       main="")
+       main=paste0(gsub("_0","",b1[b2[i]]),",",
+                   gsub("_0","",b1[b2[j+1]])))
   #Adjusted MICA
-  hist(gs$Corr.R2_H,col="green2",xlab=expression(R[H_adj]^2),main="")
-  s_names <- c(s_names,paste(b1[b2[i]],"and",b1[b2[j+1]]))
-  print(paste(b1[b2[i]],"and",b1[b2[j+1]]))
+  hist(gs$Corr.R2_H,col="green2",xlab=expression(AR[H]^2),
+       main=paste0(gsub("_0","",b1[b2[i]]),",",
+                   gsub("_0","",b1[b2[j+1]])))
+  s_names <- c(s_names,paste0(b1[b2[i]],",",b1[b2[j+1]]))
+  print(paste0(b1[b2[i]],",",b1[b2[j+1]]))
   }
 }
 
 ####Putting it all together
-MICA_results <- data.frame(MMICA=med_R2H,lower_MMICA=lower_R2H,
+MICA_results <- data.frame(S=gsub("_0","",s_names),
+                           MMICA=med_R2H,lower_MMICA=lower_R2H,
                            upper_MMICA=upper_R2H,MAMICA=med_R2AH,
-                           lower_MAMICA=lower_R2AH,upper_MAMICA=upper_R2AH,
-                           S=gsub("_0","",s_names))
+                           lower_MAMICA=lower_R2AH,upper_MAMICA=upper_R2AH)
+
+#plotting 
+plot(1:29,seq(min(MICA_results$lower_MMICA),
+                            max(MICA_results$upper_MMICA),length=29),
+     xaxt="n",frame.plot=F,type="n",xlab="surrogates",
+     ylab=expression(R[H]^2))
+
+mtext("% > 0.7",side=3,line=2)
+#
+axis(side=1,at=1:29,labels=gsub("S","",MICA_results$S))
+axis(side=3,at=1:29,labels=mica0.7,col.ticks = "red")
+#
+points(x=1:29,y=MICA_results$MMICA[1:29],
+       pch=20,cex=1.5)
+#intresting surrogates in red including 18,1, 18,4, 18,29 in red
+elf <- 1:29
+segments(x0=elf[MICA_results$S %in% 
+                  c("S18,S1","S18,S4","S18,S29")],
+         y0=MICA_results$lower_MMICA[
+           MICA_results$S %in% c("S18,S1","S18,S4","S18,S29")],
+         y1=MICA_results$upper_MMICA[
+           MICA_results$S %in% c("S18,S1","S18,S4","S18,S29")],
+         col="red3",lwd=2)
+
+#some other ones in yellow
+segments(x0=elf[MICA_results$S %in% 
+                  c("S18,S9","S18,S5","S18,S2","S18,S19","S18,S26")],
+         y0=MICA_results$lower_MMICA[
+           MICA_results$S %in% c("S18,S9","S18,S5","S18,S2","S18,S19"
+                                 ,"S18,S26")],
+         y1=MICA_results$upper_MMICA[
+           MICA_results$S %in% c("S18,S9","S18,S5","S18,S2","S18,S19"
+                                 ,"S18,S26")],
+         col="yellow3",lwd=2)
+
+#others in blue
+segments(x0=elf[!(
+  MICA_results$S %in% c("S18,S1","S18,S4","S18,S29","S18,S9","S18,S5",
+                        "S18,S2","S18,S19","S18,S26"))],
+         y0=MICA_results$lower_MMICA[!(
+           MICA_results$S %in% c("S18,S1","S18,S4","S18,S29",
+                                 "S18,S9","S18,S5",
+                        "S18,S2","S18,S19","S18,S26"))],
+         y1=MICA_results$upper_MMICA[!(MICA_results$S %in% 
+                          c("S18,S1","S18,S4","S18,S29",
+                                 "S18,S9","S18,S5",
+                        "S18,S2","S18,S19","S18,S26"))],
+         col="blue3",lwd=2)
 
 MICA_results <- MICA_results[order(MICA_results$MMICA,decreasing = T),]
+print(xtable(MICA_results))
 
-#using the alternative approach
-#gs618_alt <- ICA.ContCont.MultS_alt(M=500,N=16,Sigma=sigma_matrix3,
-#                                    Seed=1545,Show.Progress=T,
-#                                    Model="Delta_T ~ Delta_S1 + Delta_S2")
 
-#mulrivariate causal association (top 3 surrogates from ICA)
-gs61518 <- ICA.ContCont.MultS(M=100,N=16,Sigma=sigma_matrix,
+################ Using 3 surrogates
+#combining of other surrogates with surrogate 18 and 1
+med_R2H2 <- c()
+lower_R2H2 <- c()
+upper_R2H2 <- c()
+
+med_R2AH2 <- c()
+lower_R2AH2 <- c()
+upper_R2AH2 <- c()
+s_names2 <- c()
+mica0.72 <- c()
+#surrogate 2, 3 not yet done, i.e 1=14 and i=21 not done
+for(i in 1:length(b2)){
+  #if(i == length(b2)) break
+  if(b1[b2[i]] %in% c("S18_0","S18_1","S1_0","S1_1")) next
+  
+    ssmatrix <- sigma_matrix[c("T_0","T_1","S18_0","S18_1",
+                              "S1_0","S1_1",b1[b2[i]],
+                              b1[b2[i]+1]),
+                            c("T_0","T_1","S18_0","S18_1",
+                              "S1_0","S1_1",b1[b2[i]],
+                              b1[b2[i]+1])]
+    if(b1[b2[i]] == "S2_0") {
+      m=75
+    } else if(b1[b2[i]] == "S3_0"){
+      m=48
+    } else m=200
+    
+  print(paste0("S18",",","S1",",",gsub("_0","",b1[b2[i]]),m))
+  gs <- ICA.ContCont.MultS(M=m,N=16,Sigma=ssmatrix,
                               Show.Progress=T,Seed=1545,
                               G=seq(from=-1, to=1, by = .01))
+  med_R2H2 <- c(med_R2H2,median(gs$R2_H))
+  lower_R2H2 <- c(lower_R2H2,range(gs$R2_H)[1])
+  upper_R2H2 <- c(upper_R2H2,range(gs$R2_H)[2])
+  #
+  med_R2AH2 <- c(med_R2AH2,median(gs$Corr.R2_H))
+  lower_R2AH2 <- c(lower_R2AH2,range(gs$Corr.R2_H)[1])
+  upper_R2AH2 <- c(upper_R2AH2,range(gs$Corr.R2_H)[2])
+  #
+  mica0.72 <- c(mica0.72,(sum(gs$Corr.R2_H > 0.7)/length(gs$Corr.R2_H))*100)
+  #plotting things
+  par(mfrow=c(1,2))
+  #unadjusted MICA
+  hist(gs$R2_H,col="green2",xlab=expression(R[H]^2),
+       main=paste0("S18",",","S1",",",gsub("_0","",b1[b2[i]])))
+  #Adjusted MICA
+  hist(gs$Corr.R2_H,col="green2",xlab=expression(AR[H]^2),
+       main=paste0("S18",",","S1",",",gsub("_0","",b1[b2[i]])))
+  s_names2 <- c(s_names2,paste0("S18",",","S1",",",gsub("_0","",b1[b2[i]])))
+}
 
-gs61518_alt <- ICA.ContCont.MultS_alt(M=500,N=16,Sigma=sigma_matrix,
-                                    Seed=1545,Show.Progress=T,
-                                    Model="Delta_T ~ Delta_S1 + 
-                                    Delta_S2 + Delta_S3")
+#putting it all together
+MICA2_results2 <- data.frame(S=gsub("S","",s_names2),
+                           MMICA=med_R2H2,lower_MMICA=lower_R2H2,
+                           upper_MMICA=upper_R2H2,MAMICA=med_R2AH2,
+                      lower_MAMICA=lower_R2AH2,upper_MAMICA=upper_R2AH2)
+#plotting things
+plot(1:28,seq(min(MICA2_results2$lower_MMICA),
+                            max(MICA2_results2$upper_MMICA),length=28),
+     xaxt="n",frame.plot=F,type="n",xlab="surrogates",
+     ylab=expression(R[H]^2))
 
-#plotting the uncertainties
-lower_range <- c(range(gs1518$R2_H)[1],range(gs1829$R2_H)[1],
-                 range(gs615$R2_H)[1])
+mtext("% > 0.7",side=3,line=2)
+#
+axis(side=1,at=1:28,labels=gsub("S","",MICA2_results2$S))
+axis(side=3,at=1:28,labels=round(mica0.72),col.ticks = "red")
+#
+points(x=1:28,y=MICA2_results2$MMICA[1:28],
+       pch=20,cex=1.5)
+#intresting surrogates in red
+elf <- 1:28
+segments(x0=elf[MICA2_results2$S %in% 
+                  c("18,1,21","18,1,5","18,1,6")],
+         y0=MICA2_results2$lower_MMICA[
+           MICA2_results2$S %in% c("18,1,21","18,1,5","18,1,6")],
+         y1=MICA2_results2$upper_MMICA[
+           MICA2_results2$S %in% c("18,1,21","18,1,5","18,1,6")],
+         col="red3",lwd=2)
 
-upper_range <- c(range(gs1518$R2_H)[2],range(gs1829$R2_H)[2],
-                 range(gs615$R2_H)[2])
+#all other ones in yellow
+segments(x0=elf[MICA2_results2$S %in% c("18,1,12","18,1,2","18,1,30",
+                                   "18,1,29","18,1,28",
+                                      "18,1,3","18,1,26","18,1,9",
+                                   "18,1,11","18,1,15","18,1,4",
+                                   "18,1,16")],
+         y0=MICA2_results2$lower_MMICA[
+           MICA2_results2$S %in% c("18,1,12","18,1,2","18,1,30",
+                                   "18,1,29","18,1,28",
+                                      "18,1,3","18,1,26","18,1,9",
+                                   "18,1,11","18,1,15","18,1,4",
+                                   "18,1,16")],
+         y1=MICA2_results2$upper_MMICA[
+           MICA2_results2$S %in% c("18,1,12","18,1,2","18,1,30",
+                                   "18,1,29","18,1,28",
+                                      "18,1,3","18,1,26","18,1,9",
+                                   "18,1,11","18,1,15","18,1,4",
+                                   "18,1,16")],
+         col="yellow3",lwd=2)
 
-med_com <- c(median(gs1518$R2_H),median(gs1829$R2_H)[1],
-            median(gs615$R2_H))
+#others in blue
+segments(x0=elf[!(MICA2_results2$S %in% c("18,1,12","18,1,2","18,1,30",
+                                   "18,1,29","18,1,28",
+                                      "18,1,3","18,1,26","18,1,9",
+                                   "18,1,11","18,1,15","18,1,4",
+                                   "18,1,16","18,1,12","18,1,2","18,1,30",
+                                   "18,1,29","18,1,28",
+                                      "18,1,3","18,1,26","18,1,9",
+                                   "18,1,11","18,1,15","18,1,4",
+                                   "18,1,16","18,1,21","18,1,5","18,1,6"))],
+         y0=MICA2_results2$lower_MMICA[!(MICA2_results2$S %in% 
+                                           c("18,1,12","18,1,2","18,1,30",
+                                   "18,1,29","18,1,28",
+                                      "18,1,3","18,1,26","18,1,9",
+                                   "18,1,11","18,1,15","18,1,4",
+                                   "18,1,16","18,1,12","18,1,2","18,1,30",
+                                   "18,1,29","18,1,28",
+                                      "18,1,3","18,1,26","18,1,9",
+                                   "18,1,11","18,1,15","18,1,4",
+                                   "18,1,16","18,1,21","18,1,5","18,1,6"))],
+         y1=MICA2_results2$upper_MMICA[!(MICA2_results2$S %in% 
+                                           c("18,1,12","18,1,2","18,1,30",
+                                   "18,1,29","18,1,28",
+                                      "18,1,3","18,1,26","18,1,9",
+                                   "18,1,11","18,1,15","18,1,4",
+                                   "18,1,16","18,1,12","18,1,2","18,1,30",
+                                   "18,1,29","18,1,28",
+                                      "18,1,3","18,1,26","18,1,9",
+                                   "18,1,11","18,1,15","18,1,4",
+                                   "18,1,16","18,1,21","18,1,5","18,1,6"))],
+         col="blue3",lwd=2)
 
-#plotting them together
-plot(x=1:3,y=med_com,xlab="surrogates",ylab=expression(R[H]^2),type="n",
-     axes=F,ylim=c(0,1))
-axis(side=2,at=c(0,0.25,0.5,0.75,1.0))
-axis(side=1,at=1:3,labels=c("S15+S18","S18+S29","S6+S15"))
-
-points(x=1:3,y=med_com,pch=20)
-segments(x0=1:3, y0=lower_range,y1=upper_range)
-abline(h=0.5,lty=2,col="green3")
-
-
+#ordering things
+MICA2_results2 <- MICA2_results2[order(MICA2_results2$lower_MMICA,MICA2_results2$MMICA,decreasing=T),]
 ```
 
 
 ### Multivariate Joint Modelling Approach
 
 ```{r}
+#2 surrogates
 mjoint_MAA <- data.frame()
 mjoint_AMAA <- data.frame()
-b <- length(s_rank)-1
-for(i in 1:b){
-  a <- i+1
-  for(j in a:length(s_rank)){
+residual_vector2 <- vector("list",30)
+for(j in 1:length(s_rank)){
+  if(s_rank[j]==18) next
     mjdata <- data.frame(Patients=p_data$patient,T=resVector, 
-                         Z=trt,S1=S_log[,s_rank[i]],S2=S_log[,s_rank[j]])
+                         Z=trt,S1=S_log[,18],S2=S_log[,s_rank[j]])
     mjdata_long <- mjdata %>% 
       tidyr::gather(key=Endpoint,value=Measure,-Z,-Patients)
     mjdata_long$EP <- NULL
@@ -656,79 +903,379 @@ for(i in 1:b){
                                                                 Patients),
                   weights = varIdent(form=~1|EP), data = mjdata_long, 
                   method = "ML")
+    residual_vector2[[j]] <- residuals(mmodel)
     #computing adjusted association
   maa <- data.frame(AA.MultS(getVarCov(mmodel),N=16,Alpha=0.05)$Gamma.Delta)
-  maa$S <- paste0(s_rank[i],",",s_rank[j])
+  maa$S <- paste0(18,",",s_rank[j])
   amaa <- data.frame(AA.MultS(getVarCov(mmodel),N=16,
                               Alpha = 0.05)$Corr.Gamma.Delta)
-  amaa$S <- paste0(s_rank[i],",",s_rank[j])
+  amaa$S <- paste0(18,",",s_rank[j])
    mjoint_MAA <- rbind(mjoint_MAA,maa)
    mjoint_AMAA <- rbind(mjoint_AMAA,amaa)
+   print(s_rank[j])
   }
-}
+
+#plotting 
+plot(1:29,seq(min(mjoint_MAA$CI.lower.limit[1:29]),
+                            max(mjoint_MAA$CI.upper.limit[1:29]),length=29),
+     xaxt="n",frame.plot=F,type="n",xlab="surrogates",
+     ylab=expression(gamma["S,T|Z"]^{2}))
+#
+axis(side=1,at=1:29,labels=mjoint_MAA$S[1:29])
+#
+points(x=1:29,y=mjoint_MAA$Multivariate.AA[1:29],
+       pch=20,cex=1.5)
+#top 3 in red
+elf <- 1:29
+segments(x0=elf[mjoint_MAA$S %in% c("18,1","18,22","18,9")],
+         y0=mjoint_MAA$CI.lower.limit[mjoint_MAA$S %in% 
+            c("18,1","18,22","18,9")],
+         y1=mjoint_MAA$CI.upper.limit[mjoint_MAA$S %in% 
+            c("18,1","18,22","18,9")],
+         col="red3",lwd=2)
+
+#other top 7 in yellow
+segments(x0=elf[mjoint_MAA$S %in% c("18,4","18,6","18,10","18,26","18,3",
+                                    "18,5","18,19")],
+         y0=mjoint_MAA$CI.lower.limit[mjoint_MAA$S %in% 
+            c("18,4","18,6","18,10","18,26","18,3",
+              "18,5","18,19")],
+         y1=mjoint_MAA$CI.upper.limit[mjoint_MAA$S %in% 
+            c("18,4","18,6","18,10","18,26","18,3",
+              "18,5","18,19")],
+         col="yellow3",lwd=2)
+
+#others in blue
+segments(x0=elf[!(mjoint_MAA$S %in% c("18,1","18,22","18,9",
+                                    "18,4","18,6","18,10","18,26","18,3",
+                                    "18,5","18,19"))],
+         y0=mjoint_MAA$CI.lower.limit[!(mjoint_MAA$S %in% 
+            c("18,1","18,22","18,9","18,4","18,6","18,10","18,26","18,3",
+              "18,5","18,19"))],
+         y1=mjoint_MAA$CI.upper.limit[!(mjoint_MAA$S %in% 
+            c("18,1","18,22","18,9","18,4","18,6","18,10","18,26","18,3",
+              "18,5","18,19"))],
+         col="blue3",lwd=2)
+
 mjoint_MAA <- mjoint_MAA[order(mjoint_MAA$Multivariate.AA,decreasing = T),]
+
+
+
 mjoint_AMAA <- mjoint_AMAA[order(mjoint_AMAA$Adjusted.multivariate.AA,
                                  decreasing = T),]
 
+mjointprint <- data.frame(mjoint_MAA[,c(5,1,3,4)],mjoint_AMAA[,1])
+print(xtable(mjointprint[order(mjointprint$Multivariate.AA,decreasing = T),]),include.rownames=F)
 
+##using 3 surrogates, i.e. adding the others to surrogate 18 and 1
 
-
-
-####################
-#c(var(T_control_endpoint),
-                        # var(T_Exp_endpoint), 
-                        # var(S18_0),
-                        # var(S18_1),
-                        # var(S6_0),
-                        # var(S6_1),
-                        # var(S15_0),
-                        # var(S15_1),
-                        # var(S17_0),
-                        # var(S17_1),
-                        # var(S19_0),
-                        # var(S19_1),
-                        # var(S24_0),
-                        # var(S24_1),
-                        # var(S29_0),
-                        # var(S29_1),
-                        # var(S14_0),
-                        # var(S14_1),
-                        # var(S5_0),
-                        # var(S5_1),
-                        # var(S22_0),
-                        # var(S22_1),
-                        # var(S26_0),
-                        # var(S26_1),
-                        # var(S4_0),
-                        # var(S4_1))
+#3 surrogates
+mjoint_MAA2 <- data.frame()
+mjoint_AMAA2 <- data.frame()
+residual_vector3 <- vector("list",30)
+for(j in 1:length(s_rank)){
+  if(s_rank[j] %in% c(18,1)) next
+    mjdata <- data.frame(Patients=p_data$patient,T=resVector, 
+                         Z=trt,S1=S_log[,18],S2=S_log[,1],
+                         S3=S_log[,s_rank[j]])
+    mjdata_long <- mjdata %>% 
+      tidyr::gather(key=Endpoint,value=Measure,-Z,-Patients)
+    mjdata_long$EP <- NULL
+    mjdata_long$EP[mjdata_long$Endpoint=="T"] <- 1
+    mjdata_long$EP[mjdata_long$Endpoint=="S1"] <- 2
+    mjdata_long$EP[mjdata_long$Endpoint=="S2"] <- 3
+    mjdata_long$EP[mjdata_long$Endpoint=="S3"] <- 4
+    #joint modelling
+    mmodel2 <- gls(Measure~Z*as.factor(EP),correlation=corSymm(form = ~ EP|
+                                                                Patients),
+                  weights = varIdent(form=~1|EP), data = mjdata_long, 
+                  method = "ML")
+    residual_vector3[[j]] <- mmodel2$residuals
+    #computing adjusted association
+  maa2 <- data.frame(AA.MultS(getVarCov(mmodel2),N=16,Alpha=0.05)$Gamma.Delta)
+  maa2$S <- NULL
+  maa2$S <- paste0(18,",",1,",",s_rank[j])
+  amaa2 <- data.frame(AA.MultS(getVarCov(mmodel2),N=16,
+                              Alpha = 0.05)$Corr.Gamma.Delta)
+  amaa2$S <- NULL
+  amaa2$S <- paste0(18,",",1,",",s_rank[j])
+   mjoint_MAA2 <- rbind(mjoint_MAA2,maa2)
+   mjoint_AMAA2 <- rbind(mjoint_AMAA2,amaa2)
+   print(c(s_rank[j],maa2$S))
+   if(s_rank[j]==21) break
+}
+#putting things together
+jm_results2 <- data.frame(S=mjoint_MAA2$S,MAA=mjoint_MAA2$Multivariate.AA,
+                          LCL=mjoint_MAA2$CI.lower.limit,
+                          UCL=mjoint_MAA2$CI.upper.limit,
+                          AMAA=mjoint_AMAA2$Adjusted.multivariate.AA)
 #
-#T0, S18
-# sigma_matrix[1,3] <- sigma_matrix[3,1] <- cov(T_control_endpoint,S01)
-# sigma_matrix[1,5] <- sigma_matrix[5,1] <- cov(T_control_endpoint,S02)
-# sigma_matrix[1,7] <- sigma_matrix[7,1] <- cov(T_control_endpoint,S03)
-# #T1
-# sigma_matrix[2,4] <- sigma_matrix[4,2] <- cov(T_Exp_endpoint,S11)
-# sigma_matrix[2,6] <- sigma_matrix[6,2] <- cov(T_Exp_endpoint,S12)
-# sigma_matrix[2,8] <- sigma_matrix[8,2] <- cov(T_Exp_endpoint,S13)
-# #Surrogate 1 control
-# sigma_matrix[3,5] <- sigma_matrix[5,3] <- cov(S01,S02)
-# sigma_matrix[3,7] <- sigma_matrix[7,3] <- cov(S01,S02)
-# #surrogate 1 experimental
-# sigma_matrix[4,6] <- sigma_matrix[6,4] <- cov(S11,S12)
-# sigma_matrix[4,8] <- sigma_matrix[8,4] <- cov(S11,S13)
-# #surrogate 2 control
-# sigma_matrix[5,7] <- sigma_matrix[7,5] <- cov(S02,S03)
-# #surrogate 2 experimental
-# sigma_matrix[6,8] <- sigma_matrix[8,6] <- cov(S12,S13)
+#plotting 
+plot(1:28,seq(min(jm_results2$LCL),
+                            max(jm_results2$UCL),length=28),
+     xaxt="n",frame.plot=F,type="n",xlab="surrogates",
+     ylab=expression(gamma["S,T|Z"]))
+#
+axis(side=1,at=1:28,labels=jm_results2$S)
+#
+points(x=1:28,y=jm_results2$MAA,
+       pch=20,cex=1.5)
+#top 3 in red
+elf <- 1:28
+segments(x0=elf[jm_results2$S %in% c("18,1,21","18,1,6","18,1,9")],
+         y0=jm_results2$LCL[jm_results2$S %in% 
+            c("18,1,21","18,1,6","18,1,9")],
+         y1=jm_results2$UCL[jm_results2$S %in% 
+            c("18,1,21","18,1,6","18,1,9")],
+         col="red3",lwd=2)
+
+#other top 7 in yellow
+segments(x0=elf[jm_results2$S %in% c("18,1,3","18,1,30",
+                                    "18,1,12","18,1,28","18,1,16",
+                                    "18,1,5","18,1,11","18,1,26","18,1,2",
+                                    "18,1,29","18,1,13",
+                                    "18,1,4","18,1,25")],
+         y0=jm_results2$LCL[jm_results2$S %in%c("18,1,3","18,1,30",
+                                    "18,1,12","18,1,28","18,1,16",
+                                    "18,1,5","18,1,11","18,1,26","18,1,2",
+                                    "18,1,29","18,1,13",
+                                    "18,1,4","18,1,25")],
+         y1=jm_results2$UCL[jm_results2$S %in%c("18,1,3","18,1,30",
+                                    "18,1,12","18,1,28","18,1,16",
+                                    "18,1,5","18,1,11","18,1,26","18,1,2",
+                                    "18,1,29","18,1,13",
+                                    "18,1,4","18,1,25")],
+         col="yellow3",lwd=2)
+
+#others in blue
+segments(x0=elf[!(jm_results2$S %in% c("18,1,21","18,1,6","18,1,9",
+                                    "18,1,3","18,1,30",
+                                    "18,1,12","18,1,28","18,1,16",
+                                    "18,1,5","18,1,11","18,1,26","18,1,2",
+                                    "18,1,29","18,1,13",
+                                    "18,1,4","18,1,25"))],
+         y0=jm_results2$LCL[!(jm_results2$S %in% c("18,1,21","18,1,6",
+                                                   "18,1,9","18,1,3",
+                                    "18,1,30","18,1,12","18,1,28",
+                                    "18,1,16","18,1,5","18,1,11","18,1,26",
+                                    "18,1,2","18,1,29","18,1,13","18,1,4",
+                                    "18,1,25"))],
+         y1=jm_results2$UCL[!(jm_results2$S %in% c("18,1,21","18,1,6",
+                                                   "18,1,9","18,1,3",
+                                    "18,1,30","18,1,12","18,1,28",
+                                    "18,1,16","18,1,5","18,1,11","18,1,26",
+                                    "18,1,2","18,1,29","18,1,13","18,1,4",
+                                    "18,1,25"))],
+         col="blue3",lwd=2)
+
+
+
+
 
 
 ```
 
 
-### Supervised Clustering Analysis
+### Some plots
 
 ```{r}
+#surrogate 18 alone
+plot(S_log[,18],p_datalog$Diff_rdt6_rdt0,type="n",xlab="Surrogate",ylab="True Endpoint",main=paste0("Logcounts","(Surrogate",18,")"),frame.plot=F)
+    #experimental treatment
+    points(S_log[p_datalog$treatment=="donorfeces",18],p_datalog$Diff_rdt6_rdt0[p_datalog$treatment=="donorfeces"],pch=19,col="green3")
+    #control treatment
+  points(S_log[p_datalog$treatment=="own_feces",18],p_datalog$Diff_rdt6_rdt0[p_datalog$treatment=="own_feces"],pch=19,col="red3")
+  #fitted line for the joint model
+  lines(x=jm$fitted[17:32],y=jm$fitted[1:16],lty=1,lwd=2,col="grey")
+  
+plotdata1 <- data.frame(RT=jm$residuals[1:16],RS=jm$residuals[17:32],
+                        Trt=joint_data$Treatment[1:16])
+plotdata1 %>% ggplot(aes(x=RS,y=RT)) + geom_point(aes(fill=factor(Trt)),
+                                                    size=5,shape=21) +
+  scale_fill_manual("Treatment",values=c('0'='red3','1'='green3'),
+                    labels=c("own feces","donor feces")) +
+  geom_smooth(method=lm) + theme_classic() + xlab("Surrogate") + ylab("True Endpoint") + geom_text(aes(x=-0.3,y=7,label=paste("Adj. Assoc.","=",0.83))) + geom_text(aes(x=-0.3,y=5,label=paste("Unadj. Assoc.","=",0.90))) +
+  ggtitle("Surrogate 18")
 
+#surrogate 1 alone
+plotdata1a <- data.frame(RT=residual_vector[[1]][1:16],
+                         RS=residual_vector[[1]][17:32],
+                         Trt=joint_data$Treatment[1:16])
+
+plotdata1a %>% ggplot(aes(x=RS,y=RT)) + geom_point(aes(fill=factor(Trt)),
+                                                    size=5,shape=21) +
+  scale_fill_manual("Treatment",values=c('0'='red3','1'='green3'),
+                    labels=c("own feces","donor feces")) +
+  geom_smooth(method=lm) + theme_classic() + xlab("Surrogate(1)") + ylab("True Endpoint") + geom_text(aes(x=-1.5,y=7,label=paste("Adj. Assoc.","=",-0.09))) + geom_text(aes(x=-1.5,y=9,label=paste("Unadj. Assoc.","=",-0.23))) 
+
+#surrogate 21 alone
+plotdata1c <- data.frame(RT=residual_vector[[21]][1:16],
+                         RS=residual_vector[[21]][17:32],
+                         Trt=joint_data$Treatment[1:16])
+
+plotdata1c %>% ggplot(aes(x=RS,y=RT)) + geom_point(aes(fill=factor(Trt)),
+                                                    size=5,shape=21) +
+  scale_fill_manual("Treatment",values=c('0'='red3','1'='green3'),
+                    labels=c("own feces","donor feces")) +
+  geom_smooth(method=lm) + theme_classic() + xlab("Surrogate(21)") + ylab("True Endpoint") + geom_text(aes(x=-1.5,y=7,label=paste("Adj. Assoc.","=",-0.11))) + geom_text(aes(x=-1.5,y=9,label=paste("Unadj. Assoc.","=",-0.03))) 
+
+# Surrogate 18 and 1 adjusted
+
+plotdata2 <- data.frame(RT=mmodel$residuals[1:16],
+                        RS18=mmodel$residuals[17:32],
+                        RS1=mmodel$residuals[33:48],Trt=p_data$trt)
+
+plotdata2b <- data.frame(RT=residual_vector2[[24]][1:16],
+                         RS18=residual_vector2[[24]][17:32],
+                         RS1=residual_vector2[[24]][33:48],Trt=p_data$trt)
+attach(plotdata2)
+fit <- lm(RT~RS18+RS1,data=plotdata2)
+grid.lines=4
+x.pred <- seq(min(plotdata2$RS18), max(plotdata2$RS18), 
+              length.out=grid.lines)
+y.pred <- seq(min(plotdata2$RS1), max(plotdata2$RS1), 
+              length.out=grid.lines)
+xy <- expand.grid(x = x.pred, y = y.pred)
+z.pred <- matrix(predict(fit, newdata = xy), 
+                 nrow = grid.lines, ncol = grid.lines)
+fitpoints <- predict(fit)
+
+##unadjusted association for surrogate 18 and 1
+AA.MultS(cov(p_datalog[,c(6,7,24)]),N=16,Alpha=0.05)$Gamma.Delta
+
+#original
+scatter3D(x=plotdata2b[,2],y=plotdata2b[,3],z=plotdata2b[,1],bty="b2",
+          colvar=plotdata2b$Trt,col=c("red3","green3"),cex=2,
+          col.panel ="steelblue", expand=0.4, 
+          colkey=list(at = c(0.2,0.8),side=1, 
+          addlines = FALSE, length = 0.5, width = 0.5,
+          labels = c("Own Feces", "Donor Feces")),
+   col.grid = "grey",pch = 19,theta=20,phi=10,
+   xlab="Surrogate18",ylab="Surrogate1",zlab="True Endpoint",
+   main=paste("Adj. Assoc =", "0.90,","Unadj. Assoc = 0.95"))
+
+#rotating
+scatter3D(x=plotdata2b[,3],y=plotdata2b[,2],z=plotdata2b[,1],bty="b2",
+          colvar=plotdata2b$Trt,col=c("red3","green3"),cex=2,
+          col.panel ="steelblue", expand=0.4, 
+          colkey=list(at = c(0.2,0.8),side=1, 
+          addlines = FALSE, length = 0.5, width = 0.5,
+          labels = c("Own Feces", "Donor Feces")),
+   col.grid = "grey",pch = 19,theta=20,phi=10,
+   xlab="Surrogate1",ylab="Surrogate18",zlab="True Endpoint",
+   main=paste("Adj. Assoc =", "0.90,","Unadj. Assoc = 0.95"))
+
+
+
+
+
+##Surrogate 18, 1 and 21
+
+# plotdata3 <- data.frame(RT=mmodel$residuals[1:16],
+#                         RS18=mmodel$residuals[17:32],
+#                         RS1=mmodel$residuals[33:48],
+#                         RS2=mmodel$residuals[49:64],Trt=p_data$trt)
+
+plotdata3b <- data.frame(RT=residual_vector3[[30]][1:16],
+                         RS18=residual_vector3[[30]][17:32],
+                         RS1=residual_vector3[[30]][33:48],
+                         RS21=residual_vector3[[30]][49:64],
+                         Trt=p_data$trt)
+
+
+# scatter3D(x=plotdata3[,2],y=plotdata3[,3],z=plotdata3[,1],bty="b2",
+#           colvar=plotdata3[,4],cex=2,
+#           col.panel ="steelblue", expand=0.4, 
+#    col.grid = "grey",pch = c(17,19)[factor(plotdata3[,5])],
+#    theta=20,phi=10,
+#    xlab="Surrogate18",ylab="Surrogate1",zlab="True Endpoint",
+#    main=paste("Adj. Assoc =", "0.95,","Unadj. Assoc = 0.97"),
+#    clab=c("Surrogate 21"))
+
+#surrogate 1 and 18 from 21
+scatter3D(x=plotdata3b[,3],y=plotdata3b[,2],z=plotdata3b[,1],bty="b2",
+          colvar=plotdata3b$Trt,col=c("red3","green3"),cex=2,
+          col.panel ="steelblue", expand=0.4, 
+          colkey=list(at = c(0.2,0.8),side=1, 
+          addlines = FALSE, length = 0.5, width = 0.5,
+          labels = c("Own Feces", "Donor Feces")),
+   col.grid = "grey",pch = 19,theta=20,phi=10,
+   xlab="Surrogate1",ylab="Surrogate18",zlab="True Endpoint",
+   main=paste("Adj. Assoc =", "0.90,","Unadj. Assoc = 0.95"))
+
+#surrogate 18 and 1 from 18,1,21
+AA.MultS(cov(plotdata3b[,1:3]),N=16,Alpha=0.05)$Gamma.Delta
+
+scatter3D(x=plotdata3b[,2],y=plotdata3b[,3],z=plotdata3b[,1],bty="b2",
+          colvar=plotdata3b$Trt,col=c("red3","green3"),cex=2,
+          col.panel ="steelblue", expand=0.4, 
+          colkey=list(at = c(0.2,0.8),side=1, 
+          addlines = FALSE, length = 0.5, width = 0.5,
+          labels = c("Own Feces", "Donor Feces")),
+   col.grid = "grey",pch = 19,theta=20,phi=10,
+   xlab="Surrogate18",ylab="Surrogate1",zlab="True Endpoint",
+   main=paste("Adj. Assoc =", "0.90,","Unadj. Assoc = 0.95"))
+
+#surrogate 18 and 21 from 18,1,21
+AA.MultS(cov(plotdata3b[,c(1,2,4)]),N=16,Alpha=0.05)$Gamma.Delta
+AA.MultS(cov(p_datalog[,c(6,24,27)]),N=16,Alpha=0.05)$Gamma.Delta
+
+scatter3D(x=plotdata3b[,2],y=plotdata3b[,4],z=plotdata3b[,1],bty="b2",
+          colvar=plotdata3b$Trt,col=c("red3","green3"),cex=2,
+          col.panel ="steelblue", expand=0.4, 
+          colkey=list(at = c(0.2,0.8),side=1, 
+          addlines = FALSE, length = 0.5, width = 0.5,
+          labels = c("Own Feces", "Donor Feces")),
+   col.grid = "grey",pch = 19,theta=20,phi=10,
+   xlab="Surrogate18",ylab="Surrogate21",zlab="True Endpoint",
+   main=paste("Adj. Assoc =", "0.69,","Unadj. Assoc = 0.82"))
+
+#surrogate 1 and 21 from 18,1,21
+AA.MultS(cov(plotdata3b[,c(1,3,4)]),N=16,Alpha=0.05)$Gamma.Delta
+AA.MultS(cov(p_datalog[,c(6,7,27)]),N=16,Alpha=0.05)$Gamma.Delta
+
+scatter3D(x=plotdata3b[,3],y=plotdata3b[,4],z=plotdata3b[,1],bty="b2",
+          colvar=plotdata3b$Trt,col=c("red3","green3"),cex=2,
+          col.panel ="steelblue", expand=0.4, 
+          colkey=list(at = c(0.2,0.8),side=1, 
+          addlines = FALSE, length = 0.5, width = 0.5,
+          labels = c("Own Feces", "Donor Feces")),
+   col.grid = "grey",pch = 19,theta=20,phi=10,
+   xlab="Surrogate1",ylab="Surrogate21",zlab="True Endpoint",
+   main=paste("Adj. Assoc =", "0.02,","Unadj. Assoc = 0.06"))
+
+
+
+
+##unadjusted association for surrogate 18, 1 and 21
+AA.MultS(cov(p_datalog[,c(6,7,24,27)]),N=16,Alpha=0.05)$Gamma.Delta
+
+## unadjusted Relationships
+
+#surrogate 18 and 1 
+scatter3D(x=S_log[,18],y=S_log[,1],z=p_datalog[,6],bty="b2",
+          colvar=p_data$trt,col=c("red3","green3"),cex=2,
+          col.panel ="steelblue", expand =0.4, 
+   col.grid = "grey",pch = 19,colkey=list(at = c(0.2,0.8),side=1, 
+          addlines = FALSE, length = 0.5, width = 0.5,
+          labels = c("Own Feces", "Donor Feces")),theta=20,phi=10,
+   xlab="Surrogate18",ylab="Surrogate1",zlab="True Endpoint")
+
+#surrogate 18 and 9
+scatter3D(x=S_log[,18],y=S_log[,9],z=p_datalog[,6],bty="b2",
+          colvar=p_data$trt,col=c("red3","green3"),
+          col.panel ="steelblue", expand =0.4, 
+   col.grid = "grey",pch = 19,colkey = list(at = c(0.2,0.8), side=1, 
+          addlines = FALSE, length = 0.5, width = 0.5,
+          labels = c("Own Feces", "Donor Feces")),theta=30,phi=10,
+   xlab="Surrogate18",ylab="Surrogate9",zlab="True Endpoint")
+
+####loglikelihood for 18 and 1
+#logLik(mmodel)
+#'log Lik.' -50.95357 (df=12)
+###loglikelihood for surrogate 18, 1 and 21
+#logLik(mmodel2)
+#'log Lik.' -70.34133 (df=18)
 
 ```
 
