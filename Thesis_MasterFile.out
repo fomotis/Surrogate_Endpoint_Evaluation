@@ -1,14 +1,21 @@
 \BOOKMARK [1][-]{section.1}{Background \046 Introduction}{}% 1
 \BOOKMARK [2][-]{subsection.1.1}{The Human Microbiome}{section.1}% 2
-\BOOKMARK [2][-]{subsection.1.2}{Surrogate Endpoints \046 its Evaluation}{section.1}% 3
-\BOOKMARK [2][-]{subsection.1.3}{Objectives}{section.1}% 4
-\BOOKMARK [2][-]{subsection.1.4}{Dataset Description \046 Source}{section.1}% 5
-\BOOKMARK [1][-]{section.2}{Methods}{}% 6
-\BOOKMARK [2][-]{subsection.2.1}{Joint Modelling Approach}{section.2}% 7
-\BOOKMARK [2][-]{subsection.2.2}{Causal Inference Approach}{section.2}% 8
-\BOOKMARK [1][-]{section.3}{Data Analysis}{}% 9
-\BOOKMARK [2][-]{subsection.3.1}{Exploratory Analysis}{section.3}% 10
-\BOOKMARK [2][-]{subsection.3.2}{Estimation of Treatment Effects}{section.3}% 11
-\BOOKMARK [2][-]{subsection.3.3}{Joint Modelling Results}{section.3}% 12
-\BOOKMARK [2][-]{subsection.3.4}{Causal Inference Results}{section.3}% 13
-\BOOKMARK [1][-]{section.4}{Discussion \046 Conclusion}{}% 14
+\BOOKMARK [2][-]{subsection.1.2}{The Human Metabolism \046 Metabolic Disorder}{section.1}% 3
+\BOOKMARK [2][-]{subsection.1.3}{Surrogate Endpoints \046 its Evaluation}{section.1}% 4
+\BOOKMARK [2][-]{subsection.1.4}{Aims \046 Objectives}{section.1}% 5
+\BOOKMARK [2][-]{subsection.1.5}{Dataset Description, Source and Variables of Interest}{section.1}% 6
+\BOOKMARK [2][-]{subsection.1.6}{Notations}{section.1}% 7
+\BOOKMARK [1][-]{section.2}{Methods}{}% 8
+\BOOKMARK [2][-]{subsection.2.1}{Earlier Methods for Surrogate Endpoint Evaluations and Their Pitfalls}{section.2}% 9
+\BOOKMARK [2][-]{subsection.2.2}{Joint Modelling Approach\(JMA\)}{section.2}% 10
+\BOOKMARK [2][-]{subsection.2.3}{Causal Inference Approach \(CIA\)}{section.2}% 11
+\BOOKMARK [2][-]{subsection.2.4}{Evaluating Use of Multiple Surrogates}{section.2}% 12
+\BOOKMARK [2][-]{subsection.2.5}{Softwares and Tools}{section.2}% 13
+\BOOKMARK [1][-]{section.3}{Data Analysis}{}% 14
+\BOOKMARK [2][-]{subsection.3.1}{Exploratory Analysis}{section.3}% 15
+\BOOKMARK [2][-]{subsection.3.2}{Estimation of Treatment Effects}{section.3}% 16
+\BOOKMARK [2][-]{subsection.3.3}{Univariate Surrogate Evaluation}{section.3}% 17
+\BOOKMARK [3][-]{subsubsection.3.3.1}{Joint Modelling Results}{subsection.3.3}% 18
+\BOOKMARK [3][-]{subsubsection.3.3.2}{Causal Inference Results}{subsection.3.3}% 19
+\BOOKMARK [2][-]{subsection.3.4}{Multiple Surrogates Evaluation}{section.3}% 20
+\BOOKMARK [1][-]{section.4}{Discussion \046 Conclusion}{}% 21

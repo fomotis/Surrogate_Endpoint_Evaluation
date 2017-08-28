@@ -1,93 +1,239 @@
-% $ biblatex auxiliary file $
-% $ biblatex bbl format version 2.8 $
-% Do not modify the above lines!
-%
-% This is an auxiliary file used by the 'biblatex' package.
-% This file may safely be deleted. It will be recreated as
-% required.
-%
-\begingroup
-\makeatletter
-\@ifundefined{ver@biblatex.sty}
-  {\@latex@error
-     {Missing 'biblatex' package}
-     {The bibliography requires the 'biblatex' package.}
-      \aftergroup\endinput}
-  {}
-\endgroup
+\begin{thebibliography}{}
 
-\sortlist[entry]{nty/global/}
-  \entry{bull}{article}{}
-    \name{author}{2}{}{%
-      {{hash=BMJ}{%
-         family={Bull},
-         familyi={B\bibinitperiod},
-         given={M.\bibnamedelima J.},
-         giveni={M\bibinitperiod\bibinitdelim J\bibinitperiod},
-      }}%
-      {{hash=PNT}{%
-         family={Plummer},
-         familyi={P\bibinitperiod},
-         given={N.\bibnamedelima T.},
-         giveni={N\bibinitperiod\bibinitdelim T\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{BMJPNT1}
-    \strng{fullhash}{BMJPNT1}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{sortinit}{B}
-    \field{sortinithash}{B}
-    \field{number}{6}
-    \field{pages}{17\bibrangedash 22}
-    \field{title}{Part 1: The Human Gut Microbiome in Health and Disease}
-    \field{volume}{13}
-    \field{journaltitle}{Integrative Medicine: A Clinician’s Journal}
-    \field{year}{2014}
-  \endentry
+\bibitem[Alonso et~al., 2017]{surrogate1}
+Alonso, A., Bigirumurame, T., Burzykowski, T., Buyse, M., Molenberghs, G.,
+  Muchene, L., Perualila, N.~J., Shkedy, Z., and Van~der Elst, W. (2017).
+\newblock {\em Applied Surrogate Endpoint Evaluation Methods with SAS and R}.
+\newblock CRC Press, Florida.
 
-  \entry{ursell}{article}{}
-    \name{author}{4}{}{%
-      {{hash=ULK}{%
-         family={Ursell},
-         familyi={U\bibinitperiod},
-         given={L.\bibnamedelima K.},
-         giveni={L\bibinitperiod\bibinitdelim K\bibinitperiod},
-      }}%
-      {{hash=MJL}{%
-         family={Metcalf},
-         familyi={M\bibinitperiod},
-         given={J.\bibnamedelima L.},
-         giveni={J\bibinitperiod\bibinitdelim L\bibinitperiod},
-      }}%
-      {{hash=PLW}{%
-         family={Parfrey},
-         familyi={P\bibinitperiod},
-         given={L.\bibnamedelima W.},
-         giveni={L\bibinitperiod\bibinitdelim W\bibinitperiod},
-      }}%
-      {{hash=KR}{%
-         family={Knight},
-         familyi={K\bibinitperiod},
-         given={R.},
-         giveni={R\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{ULK+1}
-    \strng{fullhash}{ULKMJLPLWKR1}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{sortinit}{U}
-    \field{sortinithash}{U}
-    \verb{doi}
-    \verb http://doi.org/10.1111/j.1753-4887.2012.00493.x
-    \endverb
-    \field{number}{Suppl 1}
-    \field{pages}{S38\bibrangedash S44}
-    \field{title}{Defining the Human Microbiome}
-    \field{volume}{70}
-    \field{journaltitle}{Nutirition Reviews}
-    \field{year}{2012}
-  \endentry
-\endsortlist
-\endinput
+\bibitem[Amaratunga et~al., 2014]{DNAmicroarray}
+Amaratunga, D., Cabrera, J., and Shkedy, Z. (2014).
+\newblock {\em Exploration and analysis of DNA microarray and other
+  high-dimensional data}, volume 2014: 10.
+\newblock Wiley-Interscience, Hoboken, N.J, 2;second;2;2nd; edition.
+
+\bibitem[Bäckhed et~al., 2012]{healthymicrobiome}
+Bäckhed, F., Fraser, C.~M., Ringel, Y., Sanders, M.~E., Sartor, R.~B.,
+  Sherman, P.~M., Versalovic, J., Young, V., and Finlay, B.~B. (2012).
+\newblock Defining a healthy human gut microbiome: current concepts, future
+  directions, and clinical applications.
+\newblock {\em Cell host \& microbe}, 12(5):611--622.
+
+\bibitem[Bull and Plummer, 2014]{bull}
+Bull, M.~J. and Plummer, N.~T. (2014).
+\newblock Part 1: The human gut microbiome in health and disease.
+\newblock {\em Integrative Medicine: A Clinician’s Journal}, 13(6):17--22.
+
+\bibitem[Burzykowski et~al., 2005]{surrogate2}
+Burzykowski, T., Molenberghs, G., and Buyse, M. (2005).
+\newblock {\em The evaluation of surrogate endpoints}.
+\newblock Springer, New York, NY.
+
+\bibitem[Buyse et~al., 2007]{buyseM3}
+Buyse, M., Burzykowski, T., Carroll, K., Michiels, S., Sargent, D.~J., and
+  Miller, L.~L. (2007).
+\newblock Progression-free survival is a surrogate for survival in advanced
+  colorectal cancer.
+\newblock {\em Journal of Clinical Oncology}, 25(33):5218--5224.
+
+\bibitem[Buyse et~al., 2011]{buyseM2}
+Buyse, M., Michiels, S., Squifflet, P., Lucchesi, K.~J., Hellstrand, K., Brune,
+  M.~L., and Rowe, J.~M. (2011).
+\newblock Leukemia-free survival as a surrogate end point for overall survival
+  in the evaluation of maintenance therapy for patients with acute myeloid
+  leukemia in complete remission.
+\newblock {\em Haematologica}, 96(8):1106–1112.
+
+\bibitem[Buyse and Molenberghs, 1998]{buyseM4}
+Buyse, M. and Molenberghs, G. (1998).
+\newblock Criteria for the validation of surrogate endpoints in randomized
+  experiments.
+\newblock {\em Biometrics}, 54:1014--1029.
+
+\bibitem[Buyse et~al., 2016]{buyseM}
+Buyse, M., Molenberghs, G., Paoletti, X., Oba, K., Alonso, A.~A., Van~der Elst,
+  W., and Burzykowski, T. (2016).
+\newblock Statistical evaluation of surrogate endpoints with examples from
+  cancer clinical trials.
+\newblock {\em Biometrical Journal}, 58(1):104--132.
+
+\bibitem[DeGruttola et~al., 1997]{Degruttola}
+DeGruttola, V., Fleming, T.~R., Lin, D.~Y., and Coombs, R. (1997).
+\newblock Validating surrogate markers—are we being naive?
+\newblock {\em Journal of Infectious Diseases}, 175:237–246.
+
+\bibitem[DeGruttola and Tu, 1994]{Degruttola2}
+DeGruttola, V. and Tu, X.~M. (1994).
+\newblock Modelling progression of cd-4 lymphocyte count and its relationship
+  to survival time.
+\newblock {\em Biometrics}, 50:1003–1014.
+
+\bibitem[Dumas et~al., 2006]{backhed}
+Dumas, M., Barton, R.~H., Toye, A., Cloarec, O., Blancher, C., Rothwell, A.,
+  Fearnside, J., Tatoud, R., Blanc, V., Lindon, J.~C., Mitchell, S.~C., Holmes,
+  E., McCarthy, M.~I., Scott, J., Gauguier, D., and Nicholson, J.~K. (2006).
+\newblock Metabolic profiling reveals a contribution of gut microbiota to fatty
+  liver phenotype in insulin-resistant mice.
+\newblock {\em Proceedings of the National Academy of Sciences of the United
+  States of America}, 103(33):12511--12516.
+
+\bibitem[Enviromedica, 2012]{microbiome101}
+Enviromedica (2012).
+\newblock Microbiome 101: Understanding gut microbiota.
+\newblock http://www.prescript-assist.com/intestinal-health/gut-microbiome/.
+\newblock Online, accessed 21 July 2017.
+
+\bibitem[Fleming, 1994]{fleming1}
+Fleming, T.~R. (1994).
+\newblock Surrogate markers in aids and cancer trials.
+\newblock {\em Statistics in Medicine}, 13:1423–1435.
+
+\bibitem[Fleming and DeMets, 1996]{fleming2}
+Fleming, T.~R. and DeMets, D.~L. (1996).
+\newblock Surrogate end points in clinical trials: are we being misled?
+\newblock {\em Annals of Internal Medicine}, 125:605–613.
+
+\bibitem[Fleming and Powers, 2012]{fleming3}
+Fleming, T.~R. and Powers, J.~H. (2012).
+\newblock Biomarkers and surrogate endpoints in clinical trials.
+\newblock {\em Statistics in Medicine}, 31(25):2973–2984.
+
+\bibitem[Freedman et~al., 1992]{freedman}
+Freedman, L.~S., Graubard, B.~I., and Schatzkin, A. (1992).
+\newblock Statistical validation of intermediate endpoints for chronic
+  diseases.
+\newblock {\em Statistics in Medicine}, 11:167--178.
+
+\bibitem[Hothorn and Hornik, 2017]{R4}
+Hothorn, T. and Hornik, K. (2017).
+\newblock {\em exactRankTests: Exact Distributions for Rank and Permutation
+  Tests}.
+\newblock R package version 0.8-29.
+
+\bibitem[Investigators, 1989]{CAST}
+Investigators, C. A. S.~T. (1989).
+\newblock Preliminary report: effect of encainide and flecainide on mortality
+  in a randomized trial of arrhythmia suppression after myocardial infraction.
+\newblock {\em New England Journal of Medicine 321}, 321:406–412.
+
+\bibitem[Lagakos and Hoth, 1992]{lagakos}
+Lagakos, S.~W. and Hoth, D.~F. (1992).
+\newblock Surrogate markers in aids: where are we? where are we going?
+\newblock {\em Annals of Internal Medicine}, 116:599–601.
+
+\bibitem[Ley et~al., 2007]{humangenomeproject}
+Ley, R.~E., Gordon, J.~I., Fraser-Liggett, C.~M., Knight, R., Hamady, M., and
+  Turnbaugh, P.~J. (2007).
+\newblock The human microbiome project.
+\newblock {\em Nature}, 449(7164):804--810.
+
+\bibitem[Mahowald et~al., 2006]{turnbaugh}
+Mahowald, M.~A., Magrini, V., Turnbaugh, P.~J., Gordon, J.~I., Ley, R.~E., and
+  Mardis, E.~R. (2006).
+\newblock An obesity-associated gut microbiome with increased capacity for
+  energy harvest.
+\newblock {\em Nature}, 444(7122):1027--131.
+
+\bibitem[Molenberghs et~al., 2013]{molenberghs2013}
+Molenberghs, G., Abad, A.~A., Van~der Elst, W., Burzykowski, T., and Buyse, M.
+  (2013).
+\newblock Surrogate endpoints: when should they be used?
+\newblock {\em Clinical Investigation}, 3:1147--1155.
+
+\bibitem[Molenberghs et~al., 2002]{molenberghs2002}
+Molenberghs, G., Buyse, M., Geys, H., and Burzykowski, T. (2002).
+\newblock Statistical challenges in the evaluation of surrogate endpoints in
+  randomized trials.
+\newblock {\em Controlled Clinical Trials}, 23:607--625.
+
+\bibitem[Perualila-Tan et~al., 2016]{nolen2016}
+Perualila-Tan, N., Kasim, A., Talloen, W., Verbist, B., Ghoelmann, H.,
+  Consortium, Q., Shkedy, Z., Khamiakova, T., and Otava, M. (2016).
+\newblock A joint modeling approach for uncovering associations between gene
+  expression, bioactivity and chemical structure in early drug discovery to
+  guide lead selection and genomic biomarker development.
+\newblock {\em Statistical Applications in Genetics and Molecular Biology},
+  15(4):291--304.
+
+\bibitem[Pinheiro et~al., 2017]{R3}
+Pinheiro, J., Bates, D., DebRoy, S., Sarkar, D., and {R Core Team} (2017).
+\newblock {\em {nlme}: Linear and Nonlinear Mixed Effects Models}.
+\newblock R package version 3.1-131.
+
+\bibitem[Pollard et~al., 2005]{R5}
+Pollard, K.~S., Dudoit, S., and {van der Laan}, M.~J. (2005).
+\newblock {\em Multiple Testing Procedures: R multtest Package and Applications
+  to Genomics, in Bioinformatics and Computational Biology Solutions Using R
+  and Bioconductor}.
+\newblock Springer.
+
+\bibitem[Prentice, 1989]{prentice1989}
+Prentice, R.~L. (1989).
+\newblock Surrogate endpoints in clinical trials: definitions and operational
+  criteria.
+\newblock {\em Statistics in Medicine}, 8:431–440.
+
+\bibitem[{R Development Core Team}, 2008]{R}
+{R Development Core Team} (2008).
+\newblock {\em R: A Language and Environment for Statistical Computing}.
+\newblock R Foundation for Statistical Computing, Vienna, Austria.
+
+\bibitem[Rubin, 1974]{causal1}
+Rubin, D.~B. (1974).
+\newblock Estimating causal effects of treatments in randomized and
+  nonrandomized studies.
+\newblock {\em Journal of Educational Psychology}, 66:688--701.
+
+\bibitem[Ursell et~al., 2012]{ursell}
+Ursell, L.~K., Metcalf, J.~L., Parfrey, L.~W., and Knight, R. (2012).
+\newblock Defining the human microbiome.
+\newblock {\em Nutirition Reviews}, 70(Suppl 1):S38--S44.
+
+\bibitem[Van~der Elst, 2016]{wim2016}
+Van~der Elst, W. (2016).
+\newblock {\em Statistical Evaluation Methodology for Surrogate Endpoints in
+  Clinical Studies}.
+\newblock PhD thesis, Universiteit Hasselt.
+
+\bibitem[Van~der Elst et~al., 2017]{multivariatesurrogates}
+Van~der Elst, W., Abad, A.~A., Geys, H.~Meyvisch, P., Bijnens, L., and
+  Molenberghs, G. (2017).
+\newblock Univariate versus multivariate surrogate endpoints.
+\newblock {\em Submitted for consideration for publication in Biometrics}.
+
+\bibitem[{Van der Elst} et~al., 2017]{R2}
+{Van der Elst}, W., Meyvisch, P., Alonso, A., Ensor, H.~M., Weir, C.~J., and
+  Molenberghs, G. (2017).
+\newblock {\em Surrogate: Evaluation of Surrogate Endpoints in Clinical
+  Trials}.
+\newblock R package version 0.2.
+
+\bibitem[Van~der Elst et~al., 2016]{surrogate3}
+Van~der Elst, W., Molenberghs, G., and Alonso, A.~A. (2016).
+\newblock Exploring the relationship between the causal-inference and
+  meta-analytic paradigms for the evaluation of surrogate endpoints.
+\newblock {\em STATISTICS IN MEDICINE}, 35(8):1281--1298.
+
+\bibitem[Volberding et~al., 1990]{volding1990}
+Volberding, P.~A., Lagakos, S.~W., Koch, M.~A., Pettinelli, C., Myers, M.~W.,
+  Booth, D.~K., Balfour~Jr, H.~H., Reichman, R.~C., Bartlett, J.~A., Hirsch,
+  M.~S., Murphy, R.~L., Hardy, W.~D., Soeiro, R., Fischl, M.~A., Bartlett,
+  J.~G., Merigan, T.~C., Hyslop, N.~E., Richman, D.~D., Valentine, F.~T.,
+  Corey, L., and the AIDS Clinical Trials Group of the National Institute~of
+  Allergy \& Infectious~Diseases (1990).
+\newblock Zidovudine in asymptomatic human immunodeficiency virus infection: a
+  controlled trial in persons with fewer than 500 cd4-positive cells per cubic
+  millimeter.
+\newblock {\em New England Journal of Medicine}, 322:941--949.
+
+\bibitem[Vrieze et~al., 2012]{Vrieze}
+Vrieze, A., Van~Nood, E., Holleman, F., Salojärvi, J., Kootte, R.~S.,
+  Bartelsman, J.~F., Dallinga-Thie, G.~M., Ackermans, M.~T., Serlie, M.~J.,
+  Oozeer, R., Derrien, M., Druesne, A., Van Hylckama~Vlieg, J.~E., Bloks,
+  V.~W., Groen, A.~K., Heilig, H.~G., Zoetendal, E.~G., Stroes, E.~S., de~Vos,
+  W.~M., Hoekstra, J.~B., and Nieuwdorp, M. (2012).
+\newblock Transfer of intestinal microbiota from lean donors increases insulin
+  sensitivity in individuals with metabolic syndrome.
+\newblock {\em Gastroenterology}, 43(4):913--916.
+
+\end{thebibliography}
